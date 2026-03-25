@@ -20,19 +20,29 @@ export function Budgets() {
   const [formCategory, setFormCategory] = useState<Category>('food');
   const [formLimit, setFormLimit] = useState('');
   const [formPeriod, setFormPeriod] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
+  const [formError, setFormError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formLimit) return;
+    setFormError('');
 
-    addBudget({
+    if (!formLimit || parseFloat(formLimit) <= 0) {
+      setFormError('Please enter a valid budget limit');
+      return;
+    }
+
+    const result = addBudget({
       category: formCategory,
       limit: parseFloat(formLimit),
       period: formPeriod,
     });
 
-    setFormLimit('');
-    setShowAddModal(false);
+    if (result.success) {
+      setFormLimit('');
+      setShowAddModal(false);
+    } else {
+      setFormError(result.error || 'Failed to create budget');
+    }
   };
 
   const overallProgress = totalBudgeted > 0 ? (totalSpent / totalBudgeted) * 100 : 0;
@@ -43,17 +53,28 @@ export function Budgets() {
     good: budgets.filter((b) => ['good', 'moderate'].includes(getBudgetStatus(b))),
   };
 
+  // Get available categories (not already used)
+  const availableCategories = EXPENSE_CATEGORIES.filter(
+    (cat) => !budgets.find((b) => b.category === cat)
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-text">Budgets</h1>
-          <p className="text-text-muted">Set spending limits and track your progress</p>
+          <h1 className="text-heading-1">Budgets</h1>
+          <p className="text-body-sm mt-1">Set spending limits and track your progress</p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white rounded-xl font-medium transition-all duration-300 shadow-lg shadow-primary/25"
+          onClick={() => {
+            if (availableCategories.length > 0) {
+              setFormCategory(availableCategories[0]);
+              setShowAddModal(true);
+            }
+          }}
+          disabled={availableCategories.length === 0}
+          className="btn btn-primary"
         >
           <Plus className="w-5 h-5" />
           Create Budget
@@ -63,38 +84,38 @@ export function Budgets() {
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-6"
+          className="card hover-lift"
         >
           <div className="flex items-center justify-between mb-4">
-            <span className="text-text-muted font-medium">Total Budget</span>
-            <div className="p-2 bg-primary/20 rounded-xl">
+            <span className="text-text-secondary font-medium text-sm">Total Budget</span>
+            <div className="w-10 h-10 bg-primary-light rounded-xl flex items-center justify-center">
               <TrendingUp className="w-5 h-5 text-primary" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-text">{formatCurrency(totalBudgeted)}</p>
+          <p className="text-2xl font-semibold text-text">{formatCurrency(totalBudgeted)}</p>
           <p className="text-sm text-text-muted mt-1">per month</p>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="glass-card p-6"
+          transition={{ delay: 0.05 }}
+          className="card hover-lift"
         >
           <div className="flex items-center justify-between mb-4">
-            <span className="text-text-muted font-medium">Total Spent</span>
-            <div className={`p-2 rounded-xl ${overallProgress > 100 ? 'bg-danger/20' : 'bg-warning/20'}`}>
+            <span className="text-text-secondary font-medium text-sm">Total Spent</span>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${overallProgress > 100 ? 'bg-red-50' : 'bg-amber-50'}`}>
               <Bell className={`w-5 h-5 ${overallProgress > 100 ? 'text-danger' : 'text-warning'}`} />
             </div>
           </div>
-          <p className="text-2xl font-bold text-text">{formatCurrency(totalSpent)}</p>
+          <p className="text-2xl font-semibold text-text">{formatCurrency(totalSpent)}</p>
           <div className="flex items-center gap-2 mt-2">
-            <div className="flex-1 bg-surface-lighter rounded-full h-2">
+            <div className="progress flex-1">
               <div
-                className={`h-2 rounded-full transition-all duration-500 ${
-                  overallProgress > 100 ? 'bg-danger' : overallProgress > 80 ? 'bg-warning' : 'bg-success'
+                className={`progress-bar ${
+                  overallProgress > 100 ? 'progress-bar-danger' : overallProgress > 80 ? 'progress-bar-warning' : 'progress-bar-success'
                 }`}
                 style={{ width: `${Math.min(overallProgress, 100)}%` }}
               />
@@ -104,18 +125,18 @@ export function Budgets() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="glass-card p-6"
+          transition={{ delay: 0.1 }}
+          className="card hover-lift"
         >
           <div className="flex items-center justify-between mb-4">
-            <span className="text-text-muted font-medium">Remaining</span>
-            <div className="p-2 bg-success/20 rounded-xl">
-              <CheckCircle className="w-5 h-5 text-success" />
+            <span className="text-text-secondary font-medium text-sm">Remaining</span>
+            <div className="w-10 h-10 bg-primary-light rounded-xl flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 text-primary" />
             </div>
           </div>
-          <p className={`text-2xl font-bold ${totalBudgeted - totalSpent >= 0 ? 'text-success' : 'text-danger'}`}>
+          <p className={`text-2xl font-semibold ${totalBudgeted - totalSpent >= 0 ? 'text-primary' : 'text-danger'}`}>
             {formatCurrency(Math.abs(totalBudgeted - totalSpent))}
           </p>
           <p className="text-sm text-text-muted mt-1">
@@ -127,13 +148,13 @@ export function Budgets() {
       {/* Budget Alerts */}
       {budgetsByStatus.exceeded.length > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-danger/10 border border-danger/20 rounded-2xl p-4"
+          className="bg-red-50 border border-red-200 rounded-2xl p-4"
         >
           <div className="flex items-center gap-3">
             <AlertTriangle className="w-5 h-5 text-danger" />
-            <p className="font-medium text-danger">
+            <p className="font-medium text-danger text-sm">
               {budgetsByStatus.exceeded.length} budget{budgetsByStatus.exceeded.length > 1 ? 's' : ''} exceeded this month
             </p>
           </div>
@@ -151,29 +172,28 @@ export function Budgets() {
           return (
             <motion.div
               key={budget.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="glass-card p-6 group"
+              transition={{ delay: index * 0.03 }}
+              className="card group hover-lift"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div
-                    className="p-2.5 rounded-xl"
-                    style={{ backgroundColor: `${config.color}20` }}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{ backgroundColor: `${config.color}15` }}
                   >
-                    <div className="w-5 h-5" style={{ color: config.color }}>
-                      <TrendingUp className="w-5 h-5" />
-                    </div>
+                    <TrendingUp className="w-5 h-5" style={{ color: config.color }} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-text">{config.label}</h3>
-                    <p className="text-sm text-text-muted capitalize">{budget.period}</p>
+                    <h3 className="font-semibold text-text text-sm">{config.label}</h3>
+                    <p className="text-xs text-text-muted capitalize">{budget.period}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => deleteBudget(budget.id)}
-                  className="p-2 opacity-0 group-hover:opacity-100 hover:bg-danger/10 rounded-lg transition-all"
+                  className="p-2 opacity-0 group-hover:opacity-100 hover:bg-red-50 rounded-lg transition-all"
+                  aria-label="Delete budget"
                 >
                   <X className="w-4 h-4 text-danger" />
                 </button>
@@ -182,30 +202,30 @@ export function Budgets() {
               <div className="space-y-3">
                 <div className="flex justify-between items-end">
                   <div>
-                    <p className="text-2xl font-bold text-text">{formatCurrency(budget.spent)}</p>
-                    <p className="text-sm text-text-muted">of {formatCurrency(budget.limit)}</p>
+                    <p className="text-2xl font-semibold text-text">{formatCurrency(budget.spent)}</p>
+                    <p className="text-xs text-text-muted">of {formatCurrency(budget.limit)}</p>
                   </div>
                   <span
-                    className={`text-sm font-medium px-3 py-1 rounded-full ${
+                    className={`badge ${
                       status === 'exceeded'
-                        ? 'bg-danger/20 text-danger'
+                        ? 'badge-danger'
                         : status === 'warning'
-                        ? 'bg-warning/20 text-warning'
-                        : 'bg-success/20 text-success'
+                        ? 'badge-warning'
+                        : 'badge-success'
                     }`}
                   >
                     {status === 'exceeded' ? 'Over Budget' : status === 'warning' ? 'Warning' : 'On Track'}
                   </span>
                 </div>
 
-                <div className="w-full bg-surface-lighter rounded-full h-3">
+                <div className="progress">
                   <div
-                    className={`h-3 rounded-full transition-all duration-500 ${
+                    className={`progress-bar ${
                       status === 'exceeded'
-                        ? 'bg-gradient-to-r from-danger to-red-400'
+                        ? 'progress-bar-danger'
                         : status === 'warning'
-                        ? 'bg-gradient-to-r from-warning to-yellow-400'
-                        : 'bg-gradient-to-r from-success to-emerald-400'
+                        ? 'progress-bar-warning'
+                        : 'progress-bar-success'
                     }`}
                     style={{ width: `${Math.min(percentage, 100)}%` }}
                   />
@@ -213,7 +233,7 @@ export function Budgets() {
 
                 <div className="flex justify-between text-sm">
                   <span className="text-text-muted">{percentage.toFixed(0)}% used</span>
-                  <span className={remaining >= 0 ? 'text-success' : 'text-danger'}>
+                  <span className={remaining >= 0 ? 'text-primary' : 'text-danger'}>
                     {remaining >= 0 ? `${formatCurrency(remaining)} left` : `${formatCurrency(Math.abs(remaining))} over`}
                   </span>
                 </div>
@@ -223,17 +243,22 @@ export function Budgets() {
         })}
 
         {/* Add Budget Card */}
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          onClick={() => setShowAddModal(true)}
-          className="glass-card p-6 border-2 border-dashed border-surface-lighter hover:border-primary/50 transition-colors flex flex-col items-center justify-center gap-3 min-h-48"
-        >
-          <div className="p-3 bg-primary/10 rounded-xl">
-            <Plus className="w-6 h-6 text-primary" />
-          </div>
-          <p className="font-medium text-text-muted">Create New Budget</p>
-        </motion.button>
+        {availableCategories.length > 0 && (
+          <motion.button
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={() => {
+              setFormCategory(availableCategories[0]);
+              setShowAddModal(true);
+            }}
+            className="card border-2 border-dashed border-border hover:border-primary transition-colors flex flex-col items-center justify-center gap-3 min-h-48"
+          >
+            <div className="w-12 h-12 bg-primary-light rounded-xl flex items-center justify-center">
+              <Plus className="w-6 h-6 text-primary" />
+            </div>
+            <p className="font-medium text-text-secondary">Create New Budget</p>
+          </motion.button>
+        )}
       </div>
 
       {/* Add Budget Modal */}
@@ -243,44 +268,51 @@ export function Budgets() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
             onClick={() => setShowAddModal(false)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-surface-light dark:bg-surface-light light:bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
+              exit={{ opacity: 0, scale: 0.95, y: 16 }}
+              className="card w-full max-w-md shadow-xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-text">Create Budget</h2>
+                <h2 className="text-heading-2">Create Budget</h2>
                 <button
                   onClick={() => setShowAddModal(false)}
                   className="p-2 hover:bg-surface-lighter rounded-lg transition-colors"
+                  aria-label="Close modal"
                 >
                   <X className="w-5 h-5 text-text-muted" />
                 </button>
               </div>
 
+              {formError && (
+                <div className="bg-red-50 border border-red-200 text-danger rounded-xl p-3 mb-4 text-sm">
+                  {formError}
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Category */}
                 <div>
-                  <label className="block text-sm text-text-muted mb-2">Category</label>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">Category</label>
                   <div className="grid grid-cols-3 gap-2">
-                    {EXPENSE_CATEGORIES.filter(cat => !budgets.find(b => b.category === cat)).map((cat) => (
+                    {availableCategories.map((cat) => (
                       <button
                         key={cat}
                         type="button"
                         onClick={() => setFormCategory(cat)}
-                        className={`p-3 rounded-xl text-xs font-medium transition-all ${
+                        className={`p-3 rounded-xl text-xs font-medium transition-all border ${
                           formCategory === cat
-                            ? 'ring-2 ring-primary'
-                            : 'bg-surface dark:bg-surface light:bg-gray-50 hover:bg-surface-lighter'
+                            ? 'border-primary bg-primary-light'
+                            : 'border-border bg-surface-lighter hover:border-text-muted'
                         }`}
                         style={
                           formCategory === cat
-                            ? { backgroundColor: `${CATEGORY_CONFIG[cat].color}20`, color: CATEGORY_CONFIG[cat].color }
+                            ? { color: CATEGORY_CONFIG[cat].color }
                             : { color: 'inherit' }
                         }
                       >
@@ -292,7 +324,7 @@ export function Budgets() {
 
                 {/* Limit */}
                 <div>
-                  <label className="block text-sm text-text-muted mb-2">Budget Limit</label>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">Budget Limit</label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">$</span>
                     <input
@@ -303,15 +335,16 @@ export function Budgets() {
                       step="1"
                       min="0"
                       required
-                      className="w-full bg-surface dark:bg-surface light:bg-gray-50 border border-surface-lighter dark:border-surface-lighter light:border-gray-200 rounded-xl py-3 pl-8 pr-4 text-text focus:outline-none focus:ring-2 focus:ring-primary/30"
+                      className="input"
+                      style={{ paddingLeft: '32px' }}
                     />
                   </div>
                 </div>
 
                 {/* Period */}
                 <div>
-                  <label className="block text-sm text-text-muted mb-2">Budget Period</label>
-                  <div className="flex bg-surface dark:bg-surface light:bg-gray-100 rounded-xl p-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-2">Budget Period</label>
+                  <div className="flex bg-surface-lighter rounded-xl p-1">
                     {(['weekly', 'monthly', 'yearly'] as const).map((period) => (
                       <button
                         key={period}
@@ -319,8 +352,8 @@ export function Budgets() {
                         onClick={() => setFormPeriod(period)}
                         className={`flex-1 py-2.5 rounded-lg font-medium text-sm transition-all ${
                           formPeriod === period
-                            ? 'bg-primary text-white shadow'
-                            : 'text-text-muted hover:text-text'
+                            ? 'bg-primary text-white'
+                            : 'text-text-secondary hover:text-text'
                         }`}
                       >
                         {period.charAt(0).toUpperCase() + period.slice(1)}
@@ -330,21 +363,18 @@ export function Budgets() {
                 </div>
 
                 {/* Alert Settings */}
-                <div className="bg-surface dark:bg-surface light:bg-gray-50 rounded-xl p-4">
-                  <div className="flex items-center gap-3 mb-3">
+                <div className="bg-surface-lighter rounded-xl p-4">
+                  <div className="flex items-center gap-3 mb-2">
                     <Bell className="w-5 h-5 text-primary" />
-                    <span className="font-medium text-text">Alert Settings</span>
+                    <span className="font-medium text-text text-sm">Alert Settings</span>
                   </div>
-                  <p className="text-sm text-text-muted">
+                  <p className="text-xs text-text-muted">
                     You'll receive alerts when you reach 80% and 100% of your budget.
                   </p>
                 </div>
 
                 {/* Submit */}
-                <button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white rounded-xl py-3.5 font-medium transition-all duration-300 shadow-lg shadow-primary/25"
-                >
+                <button type="submit" className="btn btn-primary w-full h-12">
                   Create Budget
                 </button>
               </form>

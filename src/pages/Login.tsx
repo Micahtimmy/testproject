@@ -20,104 +20,109 @@ export function Login() {
     setError('');
     setIsLoading(true);
 
-    try {
-      await login(email, password);
+    const result = await login(email, password);
+
+    if (result.success) {
       navigate('/dashboard');
-    } catch {
-      setError('Invalid email or password');
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError(result.error || 'Login failed. Please try again.');
     }
+
+    setIsLoading(false);
   };
 
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
-    try {
-      await loginWithGoogle();
+    setError('');
+
+    const result = await loginWithGoogle();
+
+    if (result.success) {
       navigate('/dashboard');
-    } catch {
-      setError('Google login failed');
-    } finally {
-      setIsGoogleLoading(false);
+    } else {
+      setError(result.error || 'Google login failed');
     }
+
+    setIsGoogleLoading(false);
   };
 
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Branding */}
       <motion.div
-        initial={{ opacity: 0, x: -50 }}
+        initial={{ opacity: 0, x: -40 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6 }}
-        className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary-dark to-indigo-900 p-12 flex-col justify-between relative overflow-hidden"
+        transition={{ duration: 0.5 }}
+        className="hidden lg:flex lg:w-1/2 gradient-primary p-12 flex-col justify-between relative overflow-hidden"
       >
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
+        {/* Background decoration */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 left-20 w-72 h-72 bg-white/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
         </div>
 
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-white/20 backdrop-blur-xl rounded-2xl">
-              <Wallet className="w-8 h-8 text-white" />
+            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+              <Wallet className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-white">FinanceFlow</span>
+            <span className="text-2xl font-semibold text-white">FinanceFlow</span>
           </div>
         </div>
 
         <div className="relative z-10 space-y-6">
-          <h1 className="text-5xl font-bold text-white leading-tight">
+          <h1 className="text-5xl font-semibold text-white leading-tight">
             Take control of your
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-emerald-300">
-              financial future
-            </span>
+            <span className="block text-white/90">financial future</span>
           </h1>
-          <p className="text-xl text-white/70 max-w-md">
-            AI-powered insights, smart budgeting, and investment recommendations all in one beautiful app.
+          <p className="text-lg text-white/70 max-w-md">
+            Smart budgeting, AI-powered insights, and investment recommendations all in one place.
           </p>
         </div>
 
         <div className="relative z-10 flex items-center gap-8">
           <div className="text-center">
-            <p className="text-3xl font-bold text-white">50K+</p>
+            <p className="text-3xl font-semibold text-white">50K+</p>
             <p className="text-white/60 text-sm">Active Users</p>
           </div>
           <div className="w-px h-12 bg-white/20" />
           <div className="text-center">
-            <p className="text-3xl font-bold text-white">$2.5B</p>
+            <p className="text-3xl font-semibold text-white">$2.5B</p>
             <p className="text-white/60 text-sm">Tracked</p>
           </div>
           <div className="w-px h-12 bg-white/20" />
           <div className="text-center">
-            <p className="text-3xl font-bold text-white">4.9</p>
+            <p className="text-3xl font-semibold text-white">4.9</p>
             <p className="text-white/60 text-sm">App Rating</p>
           </div>
         </div>
       </motion.div>
 
       {/* Right Panel - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-surface dark:bg-surface light:bg-gray-50">
+      <div className="flex-1 flex items-center justify-center p-8 bg-surface">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
           className="w-full max-w-md"
         >
+          {/* Mobile Logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="p-2.5 bg-gradient-to-br from-primary to-primary-dark rounded-xl">
-              <Wallet className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center">
+              <Wallet className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-text">FinanceFlow</span>
+            <span className="text-xl font-semibold text-text">FinanceFlow</span>
           </div>
 
-          <h2 className="text-3xl font-bold text-text mb-2">Welcome back</h2>
-          <p className="text-text-muted mb-8">Enter your credentials to access your account</p>
+          <h2 className="text-heading-1 mb-2">Welcome back</h2>
+          <p className="text-body-sm mb-8">Enter your credentials to access your account</p>
 
           {error && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-danger/10 border border-danger/20 text-danger rounded-xl p-4 mb-6"
+              className="bg-red-50 border border-red-200 text-danger rounded-xl p-4 mb-6 text-sm"
+              role="alert"
             >
               {error}
             </motion.div>
@@ -125,36 +130,47 @@ export function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-text-muted mb-2">Email</label>
+              <label htmlFor="email" className="block text-sm font-medium text-text-secondary mb-2">
+                Email
+              </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
                 <input
+                  id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com"
                   required
-                  className="w-full bg-surface-light dark:bg-surface-light light:bg-white border border-surface-lighter dark:border-surface-lighter light:border-gray-200 rounded-xl py-3.5 pl-12 pr-4 text-text placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                  autoComplete="email"
+                  className="input input-with-icon"
+                  style={{ paddingLeft: '44px' }}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-text-muted mb-2">Password</label>
+              <label htmlFor="password" className="block text-sm font-medium text-text-secondary mb-2">
+                Password
+              </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
                 <input
+                  id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   required
-                  className="w-full bg-surface-light dark:bg-surface-light light:bg-white border border-surface-lighter dark:border-surface-lighter light:border-gray-200 rounded-xl py-3.5 pl-12 pr-12 text-text placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                  autoComplete="current-password"
+                  className="input"
+                  style={{ paddingLeft: '44px', paddingRight: '44px' }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-text transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -163,10 +179,13 @@ export function Login() {
 
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded border-surface-lighter text-primary focus:ring-primary" />
-                <span className="text-sm text-text-muted">Remember me</span>
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <span className="text-sm text-text-secondary">Remember me</span>
               </label>
-              <a href="#" className="text-sm text-primary hover:text-primary-dark transition-colors">
+              <a href="#" className="text-sm text-primary hover:text-primary-dark font-medium transition-colors">
                 Forgot password?
               </a>
             </div>
@@ -174,7 +193,7 @@ export function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white rounded-xl py-3.5 font-medium transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-primary/40 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="btn btn-primary w-full h-12"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -189,17 +208,17 @@ export function Login() {
 
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-surface-lighter dark:border-surface-lighter light:border-gray-200" />
+              <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-surface dark:bg-surface light:bg-gray-50 text-text-muted">Or continue with</span>
+              <span className="px-4 bg-surface text-text-muted">Or continue with</span>
             </div>
           </div>
 
           <button
             onClick={handleGoogleLogin}
             disabled={isGoogleLoading}
-            className="w-full bg-surface-light dark:bg-surface-light light:bg-white border border-surface-lighter dark:border-surface-lighter light:border-gray-200 hover:bg-surface-lighter dark:hover:bg-surface-lighter light:hover:bg-gray-50 text-text rounded-xl py-3.5 font-medium transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn btn-secondary w-full h-12"
           >
             {isGoogleLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -216,7 +235,7 @@ export function Login() {
             )}
           </button>
 
-          <p className="text-center text-text-muted mt-8">
+          <p className="text-center text-text-secondary mt-8 text-sm">
             Don't have an account?{' '}
             <Link to="/register" className="text-primary hover:text-primary-dark font-medium transition-colors">
               Sign up for free

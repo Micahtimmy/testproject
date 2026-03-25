@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, Eye, EyeOff, Wallet, ArrowRight, Loader2, Check } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, Wallet, ArrowRight, Loader2, Check, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { validatePassword } from '../utils/security';
 
 export function Register() {
   const [name, setName] = useState('');
@@ -17,93 +18,97 @@ export function Register() {
   const { register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
-  const passwordStrength = {
-    hasLength: password.length >= 8,
-    hasUppercase: /[A-Z]/.test(password),
-    hasNumber: /\d/.test(password),
-    hasSpecial: /[!@#$%^&*]/.test(password),
-  };
-
-  const strengthScore = Object.values(passwordStrength).filter(Boolean).length;
+  const passwordValidation = validatePassword(password);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!agreedToTerms) {
       setError('Please agree to the terms and conditions');
       return;
     }
+
+    if (!passwordValidation.isValid) {
+      setError('Please create a stronger password');
+      return;
+    }
+
     setError('');
     setIsLoading(true);
 
-    try {
-      await register(email, password, name);
+    const result = await register(email, password, name);
+
+    if (result.success) {
       navigate('/dashboard');
-    } catch {
-      setError('Registration failed. Please try again.');
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError(result.error || 'Registration failed. Please try again.');
     }
+
+    setIsLoading(false);
   };
 
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
-    try {
-      await loginWithGoogle();
+    setError('');
+
+    const result = await loginWithGoogle();
+
+    if (result.success) {
       navigate('/dashboard');
-    } catch {
-      setError('Google registration failed');
-    } finally {
-      setIsGoogleLoading(false);
+    } else {
+      setError(result.error || 'Google registration failed');
     }
+
+    setIsGoogleLoading(false);
   };
+
+  const features = [
+    'AI-powered budget recommendations',
+    'Real-time spending alerts',
+    'Investment portfolio tracking',
+    'Bank-grade security',
+  ];
 
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Branding */}
       <motion.div
-        initial={{ opacity: 0, x: -50 }}
+        initial={{ opacity: 0, x: -40 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6 }}
-        className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 p-12 flex-col justify-between relative overflow-hidden"
+        transition={{ duration: 0.5 }}
+        className="hidden lg:flex lg:w-1/2 gradient-dark p-12 flex-col justify-between relative overflow-hidden"
       >
-        <div className="absolute inset-0 opacity-30">
+        <div className="absolute inset-0 opacity-20">
           <div className="absolute top-20 right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-40 left-10 w-96 h-96 bg-emerald-300/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-40 left-10 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
         </div>
 
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-white/20 backdrop-blur-xl rounded-2xl">
-              <Wallet className="w-8 h-8 text-white" />
+            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+              <Wallet className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-white">FinanceFlow</span>
+            <span className="text-2xl font-semibold text-white">FinanceFlow</span>
           </div>
         </div>
 
         <div className="relative z-10 space-y-8">
-          <h1 className="text-5xl font-bold text-white leading-tight">
+          <h1 className="text-5xl font-semibold text-white leading-tight">
             Start your journey to
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-orange-200">
-              financial freedom
-            </span>
+            <span className="block text-primary-light">financial freedom</span>
           </h1>
 
           <div className="space-y-4">
-            {[
-              'AI-powered budget recommendations',
-              'Real-time spending alerts',
-              'Investment portfolio tracking',
-              'Secure bank-grade encryption',
-            ].map((feature, index) => (
+            {features.map((feature, index) => (
               <motion.div
                 key={feature}
-                initial={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: -16 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 + index * 0.1 }}
+                transition={{ delay: 0.3 + index * 0.1 }}
                 className="flex items-center gap-3"
               >
-                <div className="p-1 bg-white/20 rounded-full">
-                  <Check className="w-4 h-4 text-white" />
+                <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                  <Check className="w-3.5 h-3.5 text-white" />
                 </div>
                 <span className="text-white/90">{feature}</span>
               </motion.div>
@@ -111,7 +116,8 @@ export function Register() {
           </div>
         </div>
 
-        <div className="relative z-10">
+        <div className="relative z-10 flex items-center gap-3">
+          <Shield className="w-5 h-5 text-white/60" />
           <p className="text-white/60 text-sm">
             Join 50,000+ users who trust FinanceFlow with their finances
           </p>
@@ -119,28 +125,29 @@ export function Register() {
       </motion.div>
 
       {/* Right Panel - Register Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-surface dark:bg-surface light:bg-gray-50">
+      <div className="flex-1 flex items-center justify-center p-8 bg-surface overflow-y-auto">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full max-w-md"
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="w-full max-w-md py-8"
         >
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="p-2.5 bg-gradient-to-br from-primary to-primary-dark rounded-xl">
-              <Wallet className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center">
+              <Wallet className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-text">FinanceFlow</span>
+            <span className="text-xl font-semibold text-text">FinanceFlow</span>
           </div>
 
-          <h2 className="text-3xl font-bold text-text mb-2">Create account</h2>
-          <p className="text-text-muted mb-8">Start your 14-day free trial. No credit card required.</p>
+          <h2 className="text-heading-1 mb-2">Create account</h2>
+          <p className="text-body-sm mb-8">Start your 14-day free trial. No credit card required.</p>
 
           {error && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-danger/10 border border-danger/20 text-danger rounded-xl p-4 mb-6"
+              className="bg-red-50 border border-red-200 text-danger rounded-xl p-4 mb-6 text-sm"
+              role="alert"
             >
               {error}
             </motion.div>
@@ -149,7 +156,7 @@ export function Register() {
           <button
             onClick={handleGoogleLogin}
             disabled={isGoogleLoading}
-            className="w-full bg-surface-light dark:bg-surface-light light:bg-white border border-surface-lighter dark:border-surface-lighter light:border-gray-200 hover:bg-surface-lighter dark:hover:bg-surface-lighter light:hover:bg-gray-50 text-text rounded-xl py-3.5 font-medium transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed mb-6"
+            className="btn btn-secondary w-full h-12 mb-6"
           >
             {isGoogleLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -168,60 +175,76 @@ export function Register() {
 
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-surface-lighter dark:border-surface-lighter light:border-gray-200" />
+              <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-surface dark:bg-surface light:bg-gray-50 text-text-muted">Or register with email</span>
+              <span className="px-4 bg-surface text-text-muted">Or register with email</span>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-text-muted mb-2">Full Name</label>
+              <label htmlFor="name" className="block text-sm font-medium text-text-secondary mb-2">
+                Full Name
+              </label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
                 <input
+                  id="name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="John Doe"
                   required
-                  className="w-full bg-surface-light dark:bg-surface-light light:bg-white border border-surface-lighter dark:border-surface-lighter light:border-gray-200 rounded-xl py-3.5 pl-12 pr-4 text-text placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                  autoComplete="name"
+                  className="input"
+                  style={{ paddingLeft: '44px' }}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-text-muted mb-2">Email</label>
+              <label htmlFor="email" className="block text-sm font-medium text-text-secondary mb-2">
+                Email
+              </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
                 <input
+                  id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com"
                   required
-                  className="w-full bg-surface-light dark:bg-surface-light light:bg-white border border-surface-lighter dark:border-surface-lighter light:border-gray-200 rounded-xl py-3.5 pl-12 pr-4 text-text placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                  autoComplete="email"
+                  className="input"
+                  style={{ paddingLeft: '44px' }}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-text-muted mb-2">Password</label>
+              <label htmlFor="password" className="block text-sm font-medium text-text-secondary mb-2">
+                Password
+              </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
                 <input
+                  id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Create a strong password"
                   required
-                  className="w-full bg-surface-light dark:bg-surface-light light:bg-white border border-surface-lighter dark:border-surface-lighter light:border-gray-200 rounded-xl py-3.5 pl-12 pr-12 text-text placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                  autoComplete="new-password"
+                  className="input"
+                  style={{ paddingLeft: '44px', paddingRight: '44px' }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-text transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -229,34 +252,34 @@ export function Register() {
 
               {/* Password strength indicator */}
               {password && (
-                <div className="mt-3 space-y-2">
+                <div className="mt-3 space-y-3">
                   <div className="flex gap-1">
-                    {[1, 2, 3, 4].map((level) => (
+                    {[1, 2, 3, 4, 5].map((level) => (
                       <div
                         key={level}
                         className={`h-1 flex-1 rounded-full transition-colors ${
-                          strengthScore >= level
-                            ? strengthScore <= 1
+                          passwordValidation.score >= level
+                            ? passwordValidation.score <= 2
                               ? 'bg-danger'
-                              : strengthScore <= 2
+                              : passwordValidation.score <= 3
                               ? 'bg-warning'
                               : 'bg-success'
-                            : 'bg-surface-lighter'
+                            : 'bg-border'
                         }`}
                       />
                     ))}
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className={`flex items-center gap-1 ${passwordStrength.hasLength ? 'text-success' : 'text-text-muted'}`}>
+                    <div className={`flex items-center gap-1.5 ${passwordValidation.hasMinLength ? 'text-success' : 'text-text-muted'}`}>
                       <Check className="w-3 h-3" /> 8+ characters
                     </div>
-                    <div className={`flex items-center gap-1 ${passwordStrength.hasUppercase ? 'text-success' : 'text-text-muted'}`}>
+                    <div className={`flex items-center gap-1.5 ${passwordValidation.hasUppercase ? 'text-success' : 'text-text-muted'}`}>
                       <Check className="w-3 h-3" /> Uppercase letter
                     </div>
-                    <div className={`flex items-center gap-1 ${passwordStrength.hasNumber ? 'text-success' : 'text-text-muted'}`}>
+                    <div className={`flex items-center gap-1.5 ${passwordValidation.hasNumber ? 'text-success' : 'text-text-muted'}`}>
                       <Check className="w-3 h-3" /> Number
                     </div>
-                    <div className={`flex items-center gap-1 ${passwordStrength.hasSpecial ? 'text-success' : 'text-text-muted'}`}>
+                    <div className={`flex items-center gap-1.5 ${passwordValidation.hasSpecialChar ? 'text-success' : 'text-text-muted'}`}>
                       <Check className="w-3 h-3" /> Special character
                     </div>
                   </div>
@@ -269,20 +292,20 @@ export function Register() {
                 type="checkbox"
                 checked={agreedToTerms}
                 onChange={(e) => setAgreedToTerms(e.target.checked)}
-                className="w-4 h-4 mt-0.5 rounded border-surface-lighter text-primary focus:ring-primary"
+                className="mt-0.5"
               />
-              <span className="text-sm text-text-muted">
+              <span className="text-sm text-text-secondary">
                 I agree to the{' '}
-                <a href="#" className="text-primary hover:text-primary-dark">Terms of Service</a>
+                <a href="#" className="text-primary hover:text-primary-dark font-medium">Terms of Service</a>
                 {' '}and{' '}
-                <a href="#" className="text-primary hover:text-primary-dark">Privacy Policy</a>
+                <a href="#" className="text-primary hover:text-primary-dark font-medium">Privacy Policy</a>
               </span>
             </label>
 
             <button
               type="submit"
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white rounded-xl py-3.5 font-medium transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-primary/40 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              disabled={isLoading || !passwordValidation.isValid}
+              className="btn btn-primary w-full h-12"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -295,7 +318,7 @@ export function Register() {
             </button>
           </form>
 
-          <p className="text-center text-text-muted mt-8">
+          <p className="text-center text-text-secondary mt-8 text-sm">
             Already have an account?{' '}
             <Link to="/login" className="text-primary hover:text-primary-dark font-medium transition-colors">
               Sign in

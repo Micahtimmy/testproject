@@ -4,21 +4,23 @@ import { motion } from 'framer-motion';
 import { Sidebar } from './Sidebar';
 import { Navbar } from './Navbar';
 import { useAuth } from '../../context/AuthContext';
+import { secureStorage } from '../../utils/security';
 
 export function Layout() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAuthenticated } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Persist sidebar state
   useEffect(() => {
-    const stored = localStorage.getItem('sidebar-collapsed');
-    if (stored) setSidebarCollapsed(JSON.parse(stored));
+    const stored = secureStorage.getItem<boolean>('sidebar-collapsed', false);
+    setSidebarCollapsed(stored);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('sidebar-collapsed', JSON.stringify(sidebarCollapsed));
+    secureStorage.setItem('sidebar-collapsed', sidebarCollapsed);
   }, [sidebarCollapsed]);
 
+  // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface">
@@ -27,19 +29,20 @@ export function Layout() {
           animate={{ opacity: 1 }}
           className="flex flex-col items-center gap-4"
         >
-          <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-muted">Loading...</p>
+          <div className="w-12 h-12 border-4 border-primary-light border-t-primary rounded-full animate-spin" />
+          <p className="text-text-secondary text-sm">Loading...</p>
         </motion.div>
       </div>
     );
   }
 
-  if (!user) {
+  // Redirect if not authenticated
+  if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
   }
 
   return (
-    <div className="min-h-screen bg-surface dark:bg-surface light:bg-gray-50">
+    <div className="min-h-screen bg-surface">
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -48,14 +51,20 @@ export function Layout() {
       <motion.main
         initial={false}
         animate={{
-          marginLeft: sidebarCollapsed ? 80 : 280,
+          marginLeft: sidebarCollapsed ? 72 : 260,
         }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
         className="min-h-screen"
       >
         <Navbar />
-        <div className="p-6">
-          <Outlet />
+        <div className="p-6 max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Outlet />
+          </motion.div>
         </div>
       </motion.main>
     </div>

@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import type { Transaction } from '../types';
+import { useState, useEffect, useCallback } from 'react';
+import type { Transaction, Category } from '../types';
+import { secureStorage, sanitizeInput, sanitizeAmount, isValidDate, generateSecureId } from '../utils/security';
 
 const STORAGE_KEY = 'financeflow-transactions';
 
@@ -26,53 +27,148 @@ const DEMO_TRANSACTIONS: Transaction[] = [
   { id: '20', type: 'income', amount: 800, category: 'freelance', description: 'Logo Design', date: '2026-03-23' },
 ];
 
+interface TransactionInput {
+  type: 'income' | 'expense';
+  amount: number | string;
+  category: Category;
+  description: string;
+  date: string;
+  recurring?: boolean;
+}
+
+interface ValidationResult {
+  valid: boolean;
+  errors: string[];
+}
+
 export function useTransactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Load transactions from storage
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      setTransactions(JSON.parse(stored));
+    const stored = secureStorage.getItem<Transaction[]>(STORAGE_KEY, []);
+    if (stored.length > 0) {
+      setTransactions(stored);
     } else {
       setTransactions(DEMO_TRANSACTIONS);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEMO_TRANSACTIONS));
+      secureStorage.setItem(STORAGE_KEY, DEMO_TRANSACTIONS);
     }
     setIsLoaded(true);
   }, []);
 
+  // Persist transactions to storage
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+    if (isLoaded && transactions.length > 0) {
+      secureStorage.setItem(STORAGE_KEY, transactions);
     }
   }, [transactions, isLoaded]);
 
-  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
+  // Validate transaction input
+  const validateTransaction = useCallback((input: TransactionInput): ValidationResult => {
+    const errors: string[] = [];
+
+    if (!['income', 'expense'].includes(input.type)) {
+      errors.push('Invalid transaction type');
+    }
+
+    const amount = sanitizeAmount(input.amount);
+    if (amount <= 0) {
+      errors.push('Amount must be greater than 0');
+    }
+
+    if (!input.category) {
+      errors.push('Category is required');
+    }
+
+    const description = sanitizeInput(input.description);
+    if (!description || description.length < 1) {
+      errors.push('Description is required');
+    }
+
+    if (!isValidDate(input.date)) {
+      errors.push('Invalid date format');
+    }
+
+    return { valid: errors.length === 0, errors };
+  }, []);
+
+  // Add new transaction with validation
+  const addTransaction = useCallback((input: TransactionInput): { success: boolean; error?: string } => {
+    const validation = validateTransaction(input);
+    if (!validation.valid) {
+      setError(validation.errors[0]);
+      return { success: false, error: validation.errors[0] };
+    }
+
     const newTransaction: Transaction = {
-      ...transaction,
-      id: crypto.randomUUID(),
+      id: generateSecureId(),
+      type: input.type,
+      amount: sanitizeAmount(input.amount),
+      category: input.category,
+      description: sanitizeInput(input.description),
+      date: input.date,
+      recurring: input.recurring || false,
     };
+
     setTransactions((prev) => [newTransaction, ...prev]);
-  };
+    setError(null);
+    return { success: true };
+  }, [validateTransaction]);
 
-  const deleteTransaction = (id: string) => {
+  // Delete transaction
+  const deleteTransaction = useCallback((id: string) => {
+    if (!id || typeof id !== 'string') return;
     setTransactions((prev) => prev.filter((t) => t.id !== id));
-  };
+  }, []);
 
-  const updateTransaction = (id: string, updates: Partial<Transaction>) => {
+  // Update transaction with validation
+  const updateTransaction = useCallback((id: string, updates: Partial<TransactionInput>) => {
+    if (!id || typeof id !== 'string') return;
+
     setTransactions((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
+      prev.map((t) => {
+        if (t.id !== id) return t;
+
+        const updatedTransaction = { ...t };
+
+        if (updates.amount !== undefined) {
+          updatedTransaction.amount = sanitizeAmount(updates.amount);
+        }
+        if (updates.description !== undefined) {
+          updatedTransaction.description = sanitizeInput(updates.description);
+        }
+        if (updates.category !== undefined) {
+          updatedTransaction.category = updates.category;
+        }
+        if (updates.date !== undefined && isValidDate(updates.date)) {
+          updatedTransaction.date = updates.date;
+        }
+        if (updates.type !== undefined && ['income', 'expense'].includes(updates.type)) {
+          updatedTransaction.type = updates.type;
+        }
+        if (updates.recurring !== undefined) {
+          updatedTransaction.recurring = updates.recurring;
+        }
+
+        return updatedTransaction;
+      })
     );
-  };
+  }, []);
 
-  const getTransactionsByDateRange = (startDate: string, endDate: string) => {
+  // Get transactions by date range
+  const getTransactionsByDateRange = useCallback((startDate: string, endDate: string) => {
+    if (!isValidDate(startDate) || !isValidDate(endDate)) return [];
     return transactions.filter((t) => t.date >= startDate && t.date <= endDate);
-  };
+  }, [transactions]);
 
-  const getTransactionsByCategory = (category: string) => {
+  // Get transactions by category
+  const getTransactionsByCategory = useCallback((category: string) => {
     return transactions.filter((t) => t.category === category);
-  };
+  }, [transactions]);
 
+  // Calculate totals
   const totalIncome = transactions
     .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -95,6 +191,9 @@ export function useTransactions() {
     .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
+  // Clear error
+  const clearError = useCallback(() => setError(null), []);
+
   return {
     transactions,
     addTransaction,
@@ -108,5 +207,7 @@ export function useTransactions() {
     monthlyIncome,
     monthlyExpenses,
     isLoaded,
+    error,
+    clearError,
   };
 }

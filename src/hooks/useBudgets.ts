@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Budget, Category } from '../types';
 import { useNotifications } from '../context/NotificationContext';
+import { secureStorage, sanitizeAmount, generateSecureId } from '../utils/security';
 
 const STORAGE_KEY = 'financeflow-budgets';
 
@@ -13,86 +14,157 @@ const DEFAULT_BUDGETS: Budget[] = [
   { id: '6', category: 'health', limit: 200, spent: 85, period: 'monthly' },
 ];
 
+type BudgetPeriod = 'weekly' | 'monthly' | 'yearly';
+
+interface BudgetInput {
+  category: Category;
+  limit: number | string;
+  period: BudgetPeriod;
+}
+
 export function useBudgets() {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const { addNotification } = useNotifications();
 
+  // Load budgets from storage
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      setBudgets(JSON.parse(stored));
+    const stored = secureStorage.getItem<Budget[]>(STORAGE_KEY, []);
+    if (stored.length > 0) {
+      setBudgets(stored);
     } else {
       setBudgets(DEFAULT_BUDGETS);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_BUDGETS));
+      secureStorage.setItem(STORAGE_KEY, DEFAULT_BUDGETS);
     }
     setIsLoaded(true);
   }, []);
 
+  // Persist budgets to storage
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(budgets));
+    if (isLoaded && budgets.length > 0) {
+      secureStorage.setItem(STORAGE_KEY, budgets);
     }
   }, [budgets, isLoaded]);
 
-  const addBudget = (budget: Omit<Budget, 'id' | 'spent'>) => {
+  // Add new budget with validation
+  const addBudget = useCallback((input: BudgetInput): { success: boolean; error?: string } => {
+    const limit = sanitizeAmount(input.limit);
+
+    if (limit <= 0) {
+      return { success: false, error: 'Budget limit must be greater than 0' };
+    }
+
+    if (!['weekly', 'monthly', 'yearly'].includes(input.period)) {
+      return { success: false, error: 'Invalid budget period' };
+    }
+
+    // Check if budget for this category already exists
+    const existingBudget = budgets.find(b => b.category === input.category);
+    if (existingBudget) {
+      return { success: false, error: 'Budget for this category already exists' };
+    }
+
     const newBudget: Budget = {
-      ...budget,
-      id: crypto.randomUUID(),
+      id: generateSecureId(),
+      category: input.category,
+      limit,
       spent: 0,
+      period: input.period,
     };
+
     setBudgets((prev) => [...prev, newBudget]);
-  };
+    return { success: true };
+  }, [budgets]);
 
-  const updateBudget = (id: string, updates: Partial<Budget>) => {
-    setBudgets((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, ...updates } : b))
-    );
-  };
+  // Update budget with validation
+  const updateBudget = useCallback((id: string, updates: Partial<BudgetInput>) => {
+    if (!id || typeof id !== 'string') return;
 
-  const deleteBudget = (id: string) => {
-    setBudgets((prev) => prev.filter((b) => b.id !== id));
-  };
-
-  const addExpenseToBudget = (category: Category, amount: number) => {
     setBudgets((prev) =>
       prev.map((b) => {
-        if (b.category === category) {
-          const newSpent = b.spent + amount;
-          const percentage = (newSpent / b.limit) * 100;
+        if (b.id !== id) return b;
 
-          // Trigger alerts at 80% and 100%
-          if (percentage >= 100 && (b.spent / b.limit) * 100 < 100) {
-            addNotification({
-              type: 'alert',
-              title: 'Budget Exceeded!',
-              message: `You've exceeded your ${category} budget by $${(newSpent - b.limit).toFixed(2)}.`,
-            });
-          } else if (percentage >= 80 && (b.spent / b.limit) * 100 < 80) {
-            addNotification({
-              type: 'alert',
-              title: 'Budget Warning',
-              message: `You've used ${percentage.toFixed(0)}% of your ${category} budget.`,
-            });
+        const updatedBudget = { ...b };
+
+        if (updates.limit !== undefined) {
+          const sanitizedLimit = sanitizeAmount(updates.limit);
+          if (sanitizedLimit > 0) {
+            updatedBudget.limit = sanitizedLimit;
           }
-
-          return { ...b, spent: newSpent };
         }
-        return b;
+        if (updates.period !== undefined && ['weekly', 'monthly', 'yearly'].includes(updates.period)) {
+          updatedBudget.period = updates.period;
+        }
+
+        return updatedBudget;
       })
     );
-  };
+  }, []);
 
-  const getBudgetStatus = (budget: Budget) => {
+  // Delete budget
+  const deleteBudget = useCallback((id: string) => {
+    if (!id || typeof id !== 'string') return;
+    setBudgets((prev) => prev.filter((b) => b.id !== id));
+  }, []);
+
+  // Add expense to budget with alerts
+  const addExpenseToBudget = useCallback((category: Category, amount: number) => {
+    const sanitizedAmount = sanitizeAmount(amount);
+    if (sanitizedAmount <= 0) return;
+
+    setBudgets((prev) =>
+      prev.map((b) => {
+        if (b.category !== category) return b;
+
+        const newSpent = b.spent + sanitizedAmount;
+        const percentage = (newSpent / b.limit) * 100;
+        const previousPercentage = (b.spent / b.limit) * 100;
+
+        // Trigger alerts at 80% and 100% thresholds
+        if (percentage >= 100 && previousPercentage < 100) {
+          addNotification({
+            type: 'alert',
+            title: 'Budget Exceeded!',
+            message: `You've exceeded your ${category} budget by $${(newSpent - b.limit).toFixed(2)}.`,
+          });
+        } else if (percentage >= 80 && previousPercentage < 80) {
+          addNotification({
+            type: 'alert',
+            title: 'Budget Warning',
+            message: `You've used ${percentage.toFixed(0)}% of your ${category} budget.`,
+          });
+        }
+
+        return { ...b, spent: newSpent };
+      })
+    );
+  }, [addNotification]);
+
+  // Get budget status
+  const getBudgetStatus = useCallback((budget: Budget): 'exceeded' | 'warning' | 'moderate' | 'good' => {
     const percentage = (budget.spent / budget.limit) * 100;
     if (percentage >= 100) return 'exceeded';
     if (percentage >= 80) return 'warning';
     if (percentage >= 50) return 'moderate';
     return 'good';
-  };
+  }, []);
 
+  // Get budget by category
+  const getBudgetByCategory = useCallback((category: Category): Budget | undefined => {
+    return budgets.find(b => b.category === category);
+  }, [budgets]);
+
+  // Calculate totals
   const totalBudgeted = budgets.reduce((sum, b) => sum + b.limit, 0);
   const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
+  const totalRemaining = totalBudgeted - totalSpent;
+
+  // Reset monthly budgets (call this at the start of each month)
+  const resetBudgets = useCallback(() => {
+    setBudgets((prev) =>
+      prev.map((b) => ({ ...b, spent: 0 }))
+    );
+  }, []);
 
   return {
     budgets,
@@ -101,8 +173,11 @@ export function useBudgets() {
     deleteBudget,
     addExpenseToBudget,
     getBudgetStatus,
+    getBudgetByCategory,
     totalBudgeted,
     totalSpent,
+    totalRemaining,
     isLoaded,
+    resetBudgets,
   };
 }

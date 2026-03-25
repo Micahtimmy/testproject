@@ -6,7 +6,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Sparkles,
-  Clock,
+  Calendar,
   Target,
 } from 'lucide-react';
 import {
@@ -25,15 +25,6 @@ import { useBudgets } from '../hooks/useBudgets';
 import { useAIInsights } from '../hooks/useAIInsights';
 import { CATEGORY_CONFIG } from '../types';
 import type { Category } from '../types';
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.1, duration: 0.5 },
-  }),
-};
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
@@ -90,13 +81,12 @@ export function Dashboard() {
     .map(([category, value]) => ({
       name: CATEGORY_CONFIG[category as Category]?.label || category,
       value,
-      color: CATEGORY_CONFIG[category as Category]?.color || '#6b7280',
+      color: CATEGORY_CONFIG[category as Category]?.color || '#6B7280',
     }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 5);
 
   const recentTransactions = transactions.slice(0, 5);
-
   const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
 
   return (
@@ -104,12 +94,12 @@ export function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-text">Dashboard</h1>
-          <p className="text-text-muted">Welcome back! Here's your financial overview.</p>
+          <h1 className="text-heading-1">Dashboard</h1>
+          <p className="text-body-sm mt-1">Welcome back! Here's your financial overview.</p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-surface-light/50 dark:bg-surface-light/50 light:bg-white/50 backdrop-blur-xl rounded-xl border border-surface-lighter/50 dark:border-surface-lighter/50 light:border-gray-200/50">
-          <Clock className="w-4 h-4 text-text-muted" />
-          <span className="text-sm text-text-muted">
+        <div className="flex items-center gap-2 px-4 py-2 bg-surface-light border border-border rounded-xl">
+          <Calendar className="w-4 h-4 text-text-muted" />
+          <span className="text-sm text-text-secondary">
             {new Date().toLocaleDateString('en-US', {
               weekday: 'long',
               month: 'long',
@@ -123,21 +113,20 @@ export function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Balance */}
         <motion.div
-          custom={0}
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="relative overflow-hidden bg-gradient-to-br from-primary via-primary-dark to-indigo-700 rounded-2xl p-6 text-white shadow-xl shadow-primary/20"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0 }}
+          className="relative overflow-hidden gradient-primary rounded-2xl p-6 text-white"
         >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
-          <div className="relative z-10">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="relative">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 bg-white/20 backdrop-blur-xl rounded-xl">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                 <Wallet className="w-5 h-5" />
               </div>
-              <span className="text-white/80 font-medium">Total Balance</span>
+              <span className="text-white/80 font-medium text-sm">Total Balance</span>
             </div>
-            <p className="text-3xl font-bold tracking-tight">{formatCurrency(balance)}</p>
+            <p className="text-3xl font-semibold">{formatCurrency(balance)}</p>
             <div className="flex items-center gap-1 mt-2 text-sm text-white/70">
               <ArrowUpRight className="w-4 h-4" />
               <span>+12.5% from last month</span>
@@ -147,40 +136,38 @@ export function Dashboard() {
 
         {/* Monthly Income */}
         <motion.div
-          custom={1}
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="glass-card p-6"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="card hover-lift"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2.5 bg-success/20 rounded-xl">
-              <TrendingUp className="w-5 h-5 text-success" />
+            <div className="w-10 h-10 bg-primary-light rounded-xl flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-primary" />
             </div>
-            <span className="text-text-muted font-medium">Monthly Income</span>
+            <span className="text-text-secondary font-medium text-sm">Monthly Income</span>
           </div>
-          <p className="text-2xl font-bold text-success">{formatCurrency(monthlyIncome)}</p>
+          <p className="text-2xl font-semibold text-primary">{formatCurrency(monthlyIncome)}</p>
           <div className="flex items-center gap-1 mt-2 text-sm text-text-muted">
-            <ArrowUpRight className="w-4 h-4 text-success" />
+            <ArrowUpRight className="w-4 h-4 text-primary" />
             <span>+8.2% from last month</span>
           </div>
         </motion.div>
 
         {/* Monthly Expenses */}
         <motion.div
-          custom={2}
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="glass-card p-6"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="card hover-lift"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2.5 bg-danger/20 rounded-xl">
+            <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
               <TrendingDown className="w-5 h-5 text-danger" />
             </div>
-            <span className="text-text-muted font-medium">Monthly Expenses</span>
+            <span className="text-text-secondary font-medium text-sm">Monthly Expenses</span>
           </div>
-          <p className="text-2xl font-bold text-danger">{formatCurrency(monthlyExpenses)}</p>
+          <p className="text-2xl font-semibold text-danger">{formatCurrency(monthlyExpenses)}</p>
           <div className="flex items-center gap-1 mt-2 text-sm text-text-muted">
             <ArrowDownRight className="w-4 h-4 text-danger" />
             <span>-3.1% from last month</span>
@@ -189,22 +176,21 @@ export function Dashboard() {
 
         {/* Savings Rate */}
         <motion.div
-          custom={3}
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="glass-card p-6"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="card hover-lift"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2.5 bg-warning/20 rounded-xl">
+            <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
               <Target className="w-5 h-5 text-warning" />
             </div>
-            <span className="text-text-muted font-medium">Savings Rate</span>
+            <span className="text-text-secondary font-medium text-sm">Savings Rate</span>
           </div>
-          <p className="text-2xl font-bold text-text">{savingsRate.toFixed(1)}%</p>
-          <div className="w-full bg-surface-lighter rounded-full h-2 mt-3">
+          <p className="text-2xl font-semibold text-text">{savingsRate.toFixed(1)}%</p>
+          <div className="progress mt-3">
             <div
-              className="bg-gradient-to-r from-warning to-success h-2 rounded-full transition-all duration-500"
+              className={`progress-bar ${savingsRate >= 20 ? 'progress-bar-success' : 'progress-bar-warning'}`}
               style={{ width: `${Math.min(savingsRate, 100)}%` }}
             />
           </div>
@@ -215,42 +201,42 @@ export function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Income vs Expenses Chart */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="lg:col-span-2 glass-card p-6"
+          transition={{ delay: 0.2 }}
+          className="lg:col-span-2 card"
         >
-          <h3 className="font-semibold text-text mb-6">Income vs Expenses (Last 7 Days)</h3>
+          <h3 className="text-heading-3 mb-6">Income vs Expenses (Last 7 Days)</h3>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis
                   dataKey="date"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#94a3b8', fontSize: 12 }}
+                  tick={{ fill: '#6B7280', fontSize: 12 }}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#94a3b8', fontSize: 12 }}
+                  tick={{ fill: '#6B7280', fontSize: 12 }}
                   tickFormatter={(value) => `$${value}`}
                 />
                 <Tooltip
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
                       return (
-                        <div className="bg-surface-light dark:bg-surface-light light:bg-white px-4 py-3 rounded-xl border border-surface-lighter dark:border-surface-lighter light:border-gray-200 shadow-xl">
+                        <div className="card card-sm shadow-lg">
                           <p className="text-sm font-medium text-text mb-2">{label}</p>
                           {payload.map((entry, index) => (
                             <p key={index} className="text-sm" style={{ color: entry.color }}>
@@ -267,7 +253,7 @@ export function Dashboard() {
                   type="monotone"
                   dataKey="income"
                   name="Income"
-                  stroke="#10b981"
+                  stroke="#10B981"
                   strokeWidth={2}
                   fill="url(#incomeGradient)"
                 />
@@ -275,7 +261,7 @@ export function Dashboard() {
                   type="monotone"
                   dataKey="expenses"
                   name="Expenses"
-                  stroke="#ef4444"
+                  stroke="#EF4444"
                   strokeWidth={2}
                   fill="url(#expenseGradient)"
                 />
@@ -286,12 +272,12 @@ export function Dashboard() {
 
         {/* Spending by Category */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="glass-card p-6"
+          transition={{ delay: 0.25 }}
+          className="card"
         >
-          <h3 className="font-semibold text-text mb-6">Spending by Category</h3>
+          <h3 className="text-heading-3 mb-6">Spending by Category</h3>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -300,7 +286,7 @@ export function Dashboard() {
                   cx="50%"
                   cy="50%"
                   innerRadius={50}
-                  outerRadius={80}
+                  outerRadius={75}
                   paddingAngle={3}
                   dataKey="value"
                 >
@@ -313,9 +299,9 @@ export function Dashboard() {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <div className="bg-surface-light dark:bg-surface-light light:bg-white px-3 py-2 rounded-lg border border-surface-lighter dark:border-surface-lighter light:border-gray-200 shadow-xl">
+                        <div className="card card-sm shadow-lg">
                           <p className="text-sm font-medium text-text">{data.name}</p>
-                          <p className="text-sm text-text-muted">{formatCurrency(data.value)}</p>
+                          <p className="text-sm text-text-secondary">{formatCurrency(data.value)}</p>
                         </div>
                       );
                     }
@@ -330,7 +316,7 @@ export function Dashboard() {
               <div key={item.name} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-text-muted">{item.name}</span>
+                  <span className="text-text-secondary">{item.name}</span>
                 </div>
                 <span className="font-medium text-text">{formatCurrency(item.value)}</span>
               </div>
@@ -343,41 +329,39 @@ export function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Transactions */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="lg:col-span-2 glass-card overflow-hidden"
+          transition={{ delay: 0.3 }}
+          className="lg:col-span-2 card p-0 overflow-hidden"
         >
-          <div className="p-6 border-b border-surface-lighter/50 dark:border-surface-lighter/50 light:border-gray-200/50">
-            <h3 className="font-semibold text-text">Recent Transactions</h3>
+          <div className="px-6 py-4 border-b border-border">
+            <h3 className="text-heading-3">Recent Transactions</h3>
           </div>
-          <div className="divide-y divide-surface-lighter/30 dark:divide-surface-lighter/30 light:divide-gray-100">
+          <div className="divide-y divide-border">
             {recentTransactions.map((transaction) => {
               const config = CATEGORY_CONFIG[transaction.category];
               return (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between p-4 hover:bg-surface-lighter/20 dark:hover:bg-surface-lighter/20 light:hover:bg-gray-50/50 transition-colors"
+                  className="flex items-center justify-between px-6 py-4 hover:bg-surface-lighter transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <div
-                      className="p-2.5 rounded-xl"
-                      style={{ backgroundColor: `${config.color}20` }}
+                      className="w-10 h-10 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: `${config.color}15` }}
                     >
-                      <div className="w-5 h-5" style={{ color: config.color }}>
-                        <TrendingUp className="w-5 h-5" />
-                      </div>
+                      <TrendingUp className="w-5 h-5" style={{ color: config.color }} />
                     </div>
                     <div>
-                      <p className="font-medium text-text">{transaction.description}</p>
-                      <p className="text-sm text-text-muted">
+                      <p className="font-medium text-text text-sm">{transaction.description}</p>
+                      <p className="text-xs text-text-muted">
                         {config.label} • {new Date(transaction.date).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                   <span
-                    className={`font-semibold ${
-                      transaction.type === 'income' ? 'text-success' : 'text-danger'
+                    className={`font-semibold text-sm ${
+                      transaction.type === 'income' ? 'text-primary' : 'text-danger'
                     }`}
                   >
                     {transaction.type === 'income' ? '+' : '-'}
@@ -391,35 +375,35 @@ export function Dashboard() {
 
         {/* AI Insights Preview */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="glass-card p-6"
+          transition={{ delay: 0.35 }}
+          className="card"
         >
           <div className="flex items-center gap-2 mb-6">
             <Sparkles className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold text-text">AI Insights</h3>
+            <h3 className="text-heading-3">AI Insights</h3>
             {isAnalyzing && (
-              <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin ml-auto" />
+              <div className="w-4 h-4 border-2 border-primary-light border-t-primary rounded-full animate-spin ml-auto" />
             )}
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {insights.slice(0, 3).map((insight) => (
               <div
                 key={insight.id}
                 className={`p-4 rounded-xl border ${
                   insight.type === 'warning'
-                    ? 'bg-danger/5 border-danger/20'
+                    ? 'bg-red-50 border-red-100'
                     : insight.type === 'saving'
-                    ? 'bg-success/5 border-success/20'
+                    ? 'bg-primary-light border-primary-light'
                     : insight.type === 'investment'
-                    ? 'bg-primary/5 border-primary/20'
-                    : 'bg-surface-lighter/30 border-surface-lighter/50'
+                    ? 'bg-blue-50 border-blue-100'
+                    : 'bg-surface-lighter border-border'
                 }`}
               >
                 <p className="font-medium text-text text-sm">{insight.title}</p>
-                <p className="text-xs text-text-muted mt-1 line-clamp-2">
+                <p className="text-xs text-text-secondary mt-1 line-clamp-2">
                   {insight.description}
                 </p>
               </div>
@@ -427,8 +411,8 @@ export function Dashboard() {
           </div>
 
           {/* Budget Alerts */}
-          <div className="mt-6 pt-6 border-t border-surface-lighter/50 dark:border-surface-lighter/50 light:border-gray-200/50">
-            <h4 className="text-sm font-medium text-text-muted mb-3">Budget Status</h4>
+          <div className="mt-6 pt-6 border-t border-border">
+            <h4 className="text-sm font-medium text-text-secondary mb-3">Budget Status</h4>
             <div className="space-y-3">
               {budgets.slice(0, 3).map((budget) => {
                 const status = getBudgetStatus(budget);
@@ -449,14 +433,14 @@ export function Dashboard() {
                         {formatCurrency(budget.spent)} / {formatCurrency(budget.limit)}
                       </span>
                     </div>
-                    <div className="w-full bg-surface-lighter rounded-full h-1.5">
+                    <div className="progress h-1.5">
                       <div
-                        className={`h-1.5 rounded-full transition-all duration-500 ${
+                        className={`progress-bar ${
                           status === 'exceeded'
-                            ? 'bg-danger'
+                            ? 'progress-bar-danger'
                             : status === 'warning'
-                            ? 'bg-warning'
-                            : 'bg-success'
+                            ? 'progress-bar-warning'
+                            : 'progress-bar-success'
                         }`}
                         style={{ width: `${Math.min(percentage, 100)}%` }}
                       />
