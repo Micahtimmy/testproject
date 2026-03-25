@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   ArrowLeftRight,
   PiggyBank,
+  Target,
   Sparkles,
   Settings,
   LogOut,
@@ -22,6 +23,7 @@ const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
   { icon: ArrowLeftRight, label: 'Transactions', path: '/transactions' },
   { icon: PiggyBank, label: 'Budgets', path: '/budgets' },
+  { icon: Target, label: 'Goals', path: '/goals' },
   { icon: Sparkles, label: 'AI Insights', path: '/insights' },
   { icon: Settings, label: 'Settings', path: '/settings' },
 ];

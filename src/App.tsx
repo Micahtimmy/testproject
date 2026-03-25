@@ -8,6 +8,7 @@ import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { Transactions } from './pages/Transactions';
 import { Budgets } from './pages/Budgets';
+import { Goals } from './pages/Goals';
 import { Insights } from './pages/Insights';
 import { Settings } from './pages/Settings';
 
@@ -27,6 +28,7 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/transactions" element={<Transactions />} />
                 <Route path="/budgets" element={<Budgets />} />
+                <Route path="/goals" element={<Goals />} />
                 <Route path="/insights" element={<Insights />} />
                 <Route path="/settings" element={<Settings />} />
               </Route>

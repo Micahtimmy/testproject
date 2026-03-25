@@ -5,10 +5,12 @@ import { Sidebar } from './Sidebar';
 import { Navbar } from './Navbar';
 import { useAuth } from '../../context/AuthContext';
 import { secureStorage } from '../../utils/security';
+import { Onboarding, useOnboarding } from '../Onboarding';
 
 export function Layout() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { showOnboarding, isChecked, completeOnboarding } = useOnboarding();
 
   // Persist sidebar state
   useEffect(() => {
@@ -21,7 +23,7 @@ export function Layout() {
   }, [sidebarCollapsed]);
 
   // Loading state
-  if (isLoading) {
+  if (isLoading || !isChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface">
         <motion.div
@@ -43,6 +45,11 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-surface">
+      {/* Onboarding for new users */}
+      {showOnboarding && (
+        <Onboarding onComplete={completeOnboarding} userName={user?.name} />
+      )}
+
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -57,7 +64,7 @@ export function Layout() {
         className="min-h-screen"
       >
         <Navbar />
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="p-8 max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}

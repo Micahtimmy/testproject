@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import {
   TrendingUp,
   TrendingDown,
@@ -8,6 +9,9 @@ import {
   Sparkles,
   Calendar,
   Target,
+  ChevronRight,
+  CheckCircle,
+  Circle,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -23,6 +27,7 @@ import {
 import { useTransactions } from '../hooks/useTransactions';
 import { useBudgets } from '../hooks/useBudgets';
 import { useAIInsights } from '../hooks/useAIInsights';
+import { useGoals } from '../hooks/useGoals';
 import { CATEGORY_CONFIG } from '../types';
 import type { Category } from '../types';
 
@@ -46,6 +51,7 @@ export function Dashboard() {
   } = useTransactions();
   const { budgets, getBudgetStatus } = useBudgets();
   const { insights, isAnalyzing } = useAIInsights(transactions, budgets);
+  const { activeGoals, toggleMilestone } = useGoals();
 
   // Prepare chart data
   const last7Days = Array.from({ length: 7 }, (_, i) => {
@@ -90,7 +96,7 @@ export function Dashboard() {
   const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -110,7 +116,7 @@ export function Dashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Balance */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -198,7 +204,7 @@ export function Dashboard() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Income vs Expenses Chart */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -326,7 +332,7 @@ export function Dashboard() {
       </div>
 
       {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Transactions */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -452,6 +458,95 @@ export function Dashboard() {
           </div>
         </motion.div>
       </div>
+
+      {/* Goals Section */}
+      {activeGoals.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="card"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-primary" />
+              <h3 className="text-heading-3">Active Goals</h3>
+            </div>
+            <Link
+              to="/goals"
+              className="text-sm text-primary hover:text-primary-dark font-medium flex items-center gap-1 transition-colors"
+            >
+              View All
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {activeGoals.slice(0, 3).map((goal) => {
+              const progress = goal.targetAmount && goal.currentAmount !== undefined
+                ? (goal.currentAmount / goal.targetAmount) * 100
+                : 0;
+
+              return (
+                <div key={goal.id} className="bg-surface-lighter rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium text-text text-sm">{goal.title}</h4>
+                    <span
+                      className={`badge ${
+                        goal.priority === 'high'
+                          ? 'badge-danger'
+                          : goal.priority === 'medium'
+                          ? 'badge-warning'
+                          : 'badge-neutral'
+                      }`}
+                    >
+                      {goal.priority}
+                    </span>
+                  </div>
+
+                  {goal.targetAmount && (
+                    <div className="mb-3">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-text-secondary">
+                          {formatCurrency(goal.currentAmount || 0)}
+                        </span>
+                        <span className="text-text-muted">{formatCurrency(goal.targetAmount)}</span>
+                      </div>
+                      <div className="progress h-1.5">
+                        <div
+                          className="progress-bar"
+                          style={{ width: `${Math.min(progress, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {goal.milestones && goal.milestones.length > 0 && (
+                    <div className="space-y-1.5">
+                      {goal.milestones.slice(0, 2).map((milestone) => (
+                        <button
+                          key={milestone.id}
+                          onClick={() => toggleMilestone(goal.id, milestone.id)}
+                          className="w-full flex items-center gap-2 text-xs text-left hover:bg-border/50 rounded p-1 -ml-1 transition-colors"
+                        >
+                          {milestone.completed ? (
+                            <CheckCircle className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                          ) : (
+                            <Circle className="w-3.5 h-3.5 text-text-muted flex-shrink-0" />
+                          )}
+                          <span className={milestone.completed ? 'text-text-muted line-through' : 'text-text-secondary'}>
+                            {milestone.title}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }
