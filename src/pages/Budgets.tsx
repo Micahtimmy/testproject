@@ -15,7 +15,7 @@ function formatCurrency(amount: number): string {
 }
 
 export function Budgets() {
-  const { budgets, addBudget, updateBudget, deleteBudget, getBudgetStatus, totalBudgeted, totalSpent } = useBudgets();
+  const { budgets, addBudget, deleteBudget, getBudgetStatus, totalBudgeted, totalSpent } = useBudgets();
   const [showAddModal, setShowAddModal] = useState(false);
   const [formCategory, setFormCategory] = useState<Category>('food');
   const [formLimit, setFormLimit] = useState('');

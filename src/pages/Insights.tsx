@@ -2,7 +2,6 @@ import { motion } from 'framer-motion';
 import {
   Sparkles,
   TrendingUp,
-  TrendingDown,
   AlertTriangle,
   Lightbulb,
   RefreshCw,

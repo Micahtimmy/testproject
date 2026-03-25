@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus,
   Search,
-  Filter,
   Download,
   Trash2,
   ArrowUpDown,
@@ -24,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useTransactions } from '../hooks/useTransactions';
 import { CATEGORY_CONFIG, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../types';
-import type { Transaction, TransactionType, Category } from '../types';
+import type { TransactionType, Category } from '../types';
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Briefcase,
@@ -55,7 +54,7 @@ export function Transactions() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Form state
   const [formType, setFormType] = useState<TransactionType>('expense');

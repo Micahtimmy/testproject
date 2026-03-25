@@ -54,7 +54,7 @@ export function Dashboard() {
     monthlyExpenses,
   } = useTransactions();
   const { budgets, getBudgetStatus } = useBudgets();
-  const { insights, stocks, isAnalyzing } = useAIInsights(transactions, budgets);
+  const { insights, isAnalyzing } = useAIInsights(transactions, budgets);
 
   // Prepare chart data
   const last7Days = Array.from({ length: 7 }, (_, i) => {
