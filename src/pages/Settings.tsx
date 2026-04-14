@@ -23,6 +23,9 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { sanitizeInput, isValidEmail } from '../utils/security';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 const settingsSections = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -135,33 +138,30 @@ export function Settings() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2">Full Name</label>
-                <input
+                <Input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="input"
                   maxLength={100}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2">Email</label>
-                <input
+                <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="input"
                 />
               </div>
             </div>
 
             <div className="flex items-center gap-4">
-              <button
+              <Button
                 onClick={handleSaveProfile}
                 disabled={isSaving}
-                className="btn btn-primary"
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
-              </button>
+              </Button>
               {saveMessage && (
                 <motion.span
                   initial={{ opacity: 0, x: -8 }}
@@ -182,9 +182,9 @@ export function Settings() {
                   <p className="font-medium text-text text-sm">Delete Account</p>
                   <p className="text-xs text-text-secondary">Permanently delete your account and all data</p>
                 </div>
-                <button className="btn btn-sm border border-danger text-danger hover:bg-danger hover:text-white transition-colors">
+                <Button variant="outline" size="sm" className="border-danger text-danger hover:bg-danger hover:text-white">
                   Delete
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -207,10 +207,11 @@ export function Settings() {
                   { value: 'dark', icon: Moon, label: 'Dark', preview: 'bg-gray-900 border-gray-700' },
                   { value: 'system', icon: Monitor, label: 'System', preview: 'bg-gradient-to-r from-white to-gray-900' },
                 ].map((option) => (
-                  <button
+                  <Button
                     key={option.value}
+                    variant={theme === option.value ? 'outline' : 'ghost'}
                     onClick={() => setTheme(option.value as 'light' | 'dark' | 'system')}
-                    className={`p-4 rounded-xl border-2 transition-all ${
+                    className={`p-4 h-auto flex-col ${
                       theme === option.value
                         ? 'border-primary bg-primary-light'
                         : 'border-border hover:border-text-muted'
@@ -222,7 +223,7 @@ export function Settings() {
                       <span className="font-medium text-text text-sm">{option.label}</span>
                       {theme === option.value && <Check className="w-4 h-4 text-primary" />}
                     </div>
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -230,7 +231,7 @@ export function Settings() {
             {/* Currency */}
             <div>
               <h3 className="text-sm font-medium text-text-secondary mb-4">Currency</h3>
-              <select className="input select w-full md:w-64">
+              <select className="flex h-10 w-full md:w-64 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                 <option value="USD">USD ($)</option>
                 <option value="EUR">EUR (&euro;)</option>
                 <option value="GBP">GBP (&pound;)</option>
@@ -286,9 +287,9 @@ export function Settings() {
               ))}
             </div>
 
-            <button onClick={handleSaveNotifications} className="btn btn-primary">
+            <Button onClick={handleSaveNotifications}>
               Save Preferences
-            </button>
+            </Button>
 
             {saveMessage && (
               <span className="text-sm text-primary flex items-center gap-1">
@@ -308,47 +309,55 @@ export function Settings() {
             </div>
 
             <div className="space-y-3">
-              <div className="p-4 bg-surface-lighter rounded-xl">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-text text-sm">Password</p>
-                    <p className="text-xs text-text-muted">Last changed 30 days ago</p>
+              <Card className="p-0">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-text text-sm">Password</p>
+                      <p className="text-xs text-text-muted">Last changed 30 days ago</p>
+                    </div>
+                    <Button variant="ghost" size="sm" className="text-primary">
+                      Change
+                    </Button>
                   </div>
-                  <button className="btn btn-ghost btn-sm text-primary">
-                    Change
-                  </button>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              <div className="p-4 bg-surface-lighter rounded-xl">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-text text-sm">Two-Factor Authentication</p>
-                    <p className="text-xs text-text-muted">Add an extra layer of security</p>
+              <Card className="p-0">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-text text-sm">Two-Factor Authentication</p>
+                      <p className="text-xs text-text-muted">Add an extra layer of security</p>
+                    </div>
+                    <span className="badge badge-success">Enabled</span>
                   </div>
-                  <span className="badge badge-success">Enabled</span>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              <div className="p-4 bg-surface-lighter rounded-xl">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-text text-sm">Connected Accounts</p>
-                    <p className="text-xs text-text-muted">Manage linked accounts</p>
+              <Card className="p-0 cursor-pointer hover:shadow-sm transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-text text-sm">Connected Accounts</p>
+                      <p className="text-xs text-text-muted">Manage linked accounts</p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-text-muted" />
                   </div>
-                  <ChevronRight className="w-5 h-5 text-text-muted" />
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              <div className="p-4 bg-surface-lighter rounded-xl">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-text text-sm">Active Sessions</p>
-                    <p className="text-xs text-text-muted">View and manage your active sessions</p>
+              <Card className="p-0 cursor-pointer hover:shadow-sm transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-text text-sm">Active Sessions</p>
+                      <p className="text-xs text-text-muted">View and manage your active sessions</p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-text-muted" />
                   </div>
-                  <ChevronRight className="w-5 h-5 text-text-muted" />
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         );
@@ -397,22 +406,24 @@ export function Settings() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
-                { title: 'Documentation', description: 'Learn how to use all features', icon: FileText },
-                { title: 'FAQs', description: 'Find answers to common questions', icon: HelpCircle },
-                { title: 'Contact Support', description: 'Get help from our team', icon: Mail },
-                { title: 'Community', description: 'Join our Discord community', icon: User },
+                { title: 'Documentation', description: 'Learn how to use all features', icon: FileText, url: '#' },
+                { title: 'FAQs', description: 'Find answers to common questions', icon: HelpCircle, url: '#' },
+                { title: 'Contact Support', description: 'Get help from our team', icon: Mail, url: '#' },
+                { title: 'Community', description: 'Join our Discord community', icon: User, url: '#' },
               ].map((item) => (
-                <button
+                <Card
                   key={item.title}
-                  className="p-4 bg-surface-lighter rounded-xl text-left hover:bg-border transition-colors group"
+                  className="p-0 cursor-pointer hover:shadow-md transition-all group"
                 >
-                  <div className="flex items-center gap-3 mb-2">
-                    <item.icon className="w-5 h-5 text-primary" />
-                    <span className="font-medium text-text text-sm">{item.title}</span>
-                    <ChevronRight className="w-4 h-4 text-text-muted ml-auto group-hover:translate-x-1 transition-transform" />
-                  </div>
-                  <p className="text-xs text-text-muted">{item.description}</p>
-                </button>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <item.icon className="w-5 h-5 text-primary" />
+                      <span className="font-medium text-text text-sm">{item.title}</span>
+                      <ChevronRight className="w-4 h-4 text-text-muted ml-auto group-hover:translate-x-1 transition-transform" />
+                    </div>
+                    <p className="text-xs text-text-muted">{item.description}</p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
@@ -427,45 +438,51 @@ export function Settings() {
     <div className="flex gap-6">
       {/* Sidebar */}
       <div className="w-64 flex-shrink-0">
-        <nav className="card p-2 sticky top-24">
-          {settingsSections.map((section) => (
-            <button
-              key={section.id}
-              onClick={() => setActiveSection(section.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
-                activeSection === section.id
-                  ? 'bg-primary-light text-primary'
-                  : 'text-text-secondary hover:bg-surface-lighter hover:text-text'
-              }`}
+        <Card className="p-2 sticky top-24">
+          <nav>
+            {settingsSections.map((section) => (
+              <Button
+                key={section.id}
+                variant={activeSection === section.id ? 'secondary' : 'ghost'}
+                onClick={() => setActiveSection(section.id)}
+                className={`w-full justify-start gap-3 mb-1 ${
+                  activeSection === section.id
+                    ? 'bg-primary-light text-primary'
+                    : 'text-text-secondary hover:bg-surface-lighter hover:text-text'
+                }`}
+              >
+                <section.icon className="w-5 h-5" />
+                {section.label}
+              </Button>
+            ))}
+
+            <div className="my-2 border-t border-border" />
+
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className="w-full justify-start gap-3 text-danger hover:bg-red-50"
             >
-              <section.icon className="w-5 h-5" />
-              <span className="font-medium text-sm">{section.label}</span>
-            </button>
-          ))}
-
-          <div className="my-2 border-t border-border" />
-
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-danger hover:bg-red-50 transition-all text-left"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="font-medium text-sm">Logout</span>
-          </button>
-        </nav>
+              <LogOut className="w-5 h-5" />
+              Logout
+            </Button>
+          </nav>
+        </Card>
       </div>
 
       {/* Content */}
-      <div className="flex-1 card">
-        <motion.div
-          key={activeSection}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          {renderContent()}
-        </motion.div>
-      </div>
+      <Card className="flex-1">
+        <CardContent className="pt-6">
+          <motion.div
+            key={activeSection}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {renderContent()}
+          </motion.div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

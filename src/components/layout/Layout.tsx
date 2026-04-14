@@ -1,24 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sidebar } from './Sidebar';
 import { Navbar } from './Navbar';
 import { useAuth } from '../../context/AuthContext';
 import { secureStorage } from '../../utils/security';
-import { Onboarding, useOnboarding } from '../Onboarding';
+import { Onboarding } from '../Onboarding';
+import { useOnboarding } from '../../hooks/useOnboarding';
 
 export function Layout() {
   const { user, isLoading, isAuthenticated } = useAuth();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() =>
+    secureStorage.getItem<boolean>('sidebar-collapsed', false)
+  );
   const { showOnboarding, isChecked, completeOnboarding } = useOnboarding();
+  const isInitialMount = useRef(true);
 
-  // Persist sidebar state
+  // Persist sidebar state (skip initial mount)
   useEffect(() => {
-    const stored = secureStorage.getItem<boolean>('sidebar-collapsed', false);
-    setSidebarCollapsed(stored);
-  }, []);
-
-  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     secureStorage.setItem('sidebar-collapsed', sidebarCollapsed);
   }, [sidebarCollapsed]);
 

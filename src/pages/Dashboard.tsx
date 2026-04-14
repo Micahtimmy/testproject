@@ -30,6 +30,8 @@ import { useAIInsights } from '../hooks/useAIInsights';
 import { useGoals } from '../hooks/useGoals';
 import { CATEGORY_CONFIG } from '../types';
 import type { Category } from '../types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
@@ -103,15 +105,23 @@ export function Dashboard() {
           <h1 className="text-heading-1">Dashboard</h1>
           <p className="text-body-sm mt-1">Welcome back! Here's your financial overview.</p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-surface-light border border-border rounded-xl">
-          <Calendar className="w-4 h-4 text-text-muted" />
-          <span className="text-sm text-text-secondary">
-            {new Date().toLocaleDateString('en-US', {
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric',
-            })}
-          </span>
+        <div className="flex items-center gap-4">
+          <Button variant="outline" asChild>
+            <Link to="/transactions">
+              Add Transaction
+              <TrendingUp className="w-4 h-4 ml-2" />
+            </Link>
+          </Button>
+          <div className="flex items-center gap-2 px-4 py-2 bg-surface-light border border-border rounded-xl">
+            <Calendar className="w-4 h-4 text-text-muted" />
+            <span className="text-sm text-text-secondary">
+              {new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -338,45 +348,58 @@ export function Dashboard() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="lg:col-span-2 card p-0 overflow-hidden"
+          className="lg:col-span-2"
         >
-          <div className="px-6 py-4 border-b border-border">
-            <h3 className="text-heading-3">Recent Transactions</h3>
-          </div>
-          <div className="divide-y divide-border">
-            {recentTransactions.map((transaction) => {
-              const config = CATEGORY_CONFIG[transaction.category];
-              return (
-                <div
-                  key={transaction.id}
-                  className="flex items-center justify-between px-6 py-4 hover:bg-surface-lighter transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center"
-                      style={{ backgroundColor: `${config.color}15` }}
+          <Card className="p-0 overflow-hidden">
+            <CardHeader className="px-6 py-4 border-b border-border">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-heading-3">Recent Transactions</CardTitle>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/transactions">
+                    View All
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Link>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-border">
+                {recentTransactions.map((transaction) => {
+                  const config = CATEGORY_CONFIG[transaction.category];
+                  return (
+                    <Link
+                      key={transaction.id}
+                      to="/transactions"
+                      className="flex items-center justify-between px-6 py-4 hover:bg-surface-lighter transition-colors"
                     >
-                      <TrendingUp className="w-5 h-5" style={{ color: config.color }} />
-                    </div>
-                    <div>
-                      <p className="font-medium text-text text-sm">{transaction.description}</p>
-                      <p className="text-xs text-text-muted">
-                        {config.label} • {new Date(transaction.date).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <span
-                    className={`font-semibold text-sm ${
-                      transaction.type === 'income' ? 'text-primary' : 'text-danger'
-                    }`}
-                  >
-                    {transaction.type === 'income' ? '+' : '-'}
-                    {formatCurrency(transaction.amount)}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+                      <div className="flex items-center gap-4">
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center"
+                          style={{ backgroundColor: `${config.color}15` }}
+                        >
+                          <TrendingUp className="w-5 h-5" style={{ color: config.color }} />
+                        </div>
+                        <div>
+                          <p className="font-medium text-text text-sm">{transaction.description}</p>
+                          <p className="text-xs text-text-muted">
+                            {config.label} • {new Date(transaction.date).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <span
+                        className={`font-semibold text-sm ${
+                          transaction.type === 'income' ? 'text-primary' : 'text-danger'
+                        }`}
+                      >
+                        {transaction.type === 'income' ? '+' : '-'}
+                        {formatCurrency(transaction.amount)}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* AI Insights Preview */}
@@ -384,78 +407,98 @@ export function Dashboard() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
-          className="card"
         >
-          <div className="flex items-center gap-2 mb-6">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <h3 className="text-heading-3">AI Insights</h3>
-            {isAnalyzing && (
-              <div className="w-4 h-4 border-2 border-primary-light border-t-primary rounded-full animate-spin ml-auto" />
-            )}
-          </div>
-
-          <div className="space-y-3">
-            {insights.slice(0, 3).map((insight) => (
-              <div
-                key={insight.id}
-                className={`p-4 rounded-xl border ${
-                  insight.type === 'warning'
-                    ? 'bg-red-50 border-red-100'
-                    : insight.type === 'saving'
-                    ? 'bg-primary-light border-primary-light'
-                    : insight.type === 'investment'
-                    ? 'bg-blue-50 border-blue-100'
-                    : 'bg-surface-lighter border-border'
-                }`}
-              >
-                <p className="font-medium text-text text-sm">{insight.title}</p>
-                <p className="text-xs text-text-secondary mt-1 line-clamp-2">
-                  {insight.description}
-                </p>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  <h3 className="text-heading-3">AI Insights</h3>
+                  {isAnalyzing && (
+                    <div className="w-4 h-4 border-2 border-primary-light border-t-primary rounded-full animate-spin" />
+                  )}
+                </div>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/insights">
+                    View All
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Link>
+                </Button>
               </div>
-            ))}
-          </div>
 
-          {/* Budget Alerts */}
-          <div className="mt-6 pt-6 border-t border-border">
-            <h4 className="text-sm font-medium text-text-secondary mb-3">Budget Status</h4>
-            <div className="space-y-3">
-              {budgets.slice(0, 3).map((budget) => {
-                const status = getBudgetStatus(budget);
-                const percentage = (budget.spent / budget.limit) * 100;
-                return (
-                  <div key={budget.id}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-text capitalize">{budget.category}</span>
-                      <span
-                        className={
-                          status === 'exceeded'
-                            ? 'text-danger'
-                            : status === 'warning'
-                            ? 'text-warning'
-                            : 'text-text-muted'
-                        }
-                      >
-                        {formatCurrency(budget.spent)} / {formatCurrency(budget.limit)}
-                      </span>
-                    </div>
-                    <div className="progress h-1.5">
-                      <div
-                        className={`progress-bar ${
-                          status === 'exceeded'
-                            ? 'progress-bar-danger'
-                            : status === 'warning'
-                            ? 'progress-bar-warning'
-                            : 'progress-bar-success'
-                        }`}
-                        style={{ width: `${Math.min(percentage, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+              <div className="space-y-3">
+                {insights.slice(0, 3).map((insight) => (
+                  <Link
+                    key={insight.id}
+                    to="/insights"
+                    className={`block p-4 rounded-xl border hover:shadow-sm transition-shadow ${
+                      insight.type === 'warning'
+                        ? 'bg-red-50 border-red-100'
+                        : insight.type === 'saving'
+                        ? 'bg-primary-light border-primary-light'
+                        : insight.type === 'investment'
+                        ? 'bg-blue-50 border-blue-100'
+                        : 'bg-surface-lighter border-border'
+                    }`}
+                  >
+                    <p className="font-medium text-text text-sm">{insight.title}</p>
+                    <p className="text-xs text-text-secondary mt-1 line-clamp-2">
+                      {insight.description}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+
+              {/* Budget Alerts */}
+              <div className="mt-6 pt-6 border-t border-border">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-medium text-text-secondary">Budget Status</h4>
+                  <Button variant="link" size="sm" asChild className="h-auto p-0">
+                    <Link to="/budgets">
+                      Manage
+                      <ChevronRight className="w-3 h-3 ml-1" />
+                    </Link>
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  {budgets.slice(0, 3).map((budget) => {
+                    const status = getBudgetStatus(budget);
+                    const percentage = (budget.spent / budget.limit) * 100;
+                    return (
+                      <Link key={budget.id} to="/budgets" className="block hover:opacity-80 transition-opacity">
+                        <div className="flex justify-between text-sm mb-1">
+                          <span className="text-text capitalize">{budget.category}</span>
+                          <span
+                            className={
+                              status === 'exceeded'
+                                ? 'text-danger'
+                                : status === 'warning'
+                                ? 'text-warning'
+                                : 'text-text-muted'
+                            }
+                          >
+                            {formatCurrency(budget.spent)} / {formatCurrency(budget.limit)}
+                          </span>
+                        </div>
+                        <div className="progress h-1.5">
+                          <div
+                            className={`progress-bar ${
+                              status === 'exceeded'
+                                ? 'progress-bar-danger'
+                                : status === 'warning'
+                                ? 'progress-bar-warning'
+                                : 'progress-bar-success'
+                            }`}
+                            style={{ width: `${Math.min(percentage, 100)}%` }}
+                          />
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
 

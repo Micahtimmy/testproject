@@ -38,40 +38,36 @@ const DEFAULT_USER: User = {
 // Session timeout (30 minutes)
 const SESSION_TIMEOUT = 30 * 60 * 1000;
 
+// Check if session is still valid
+function isSessionValid(): boolean {
+  const session = secureStorage.getItem<{ timestamp: number }>(SESSION_KEY, { timestamp: 0 });
+  const now = Date.now();
+  if (session.timestamp && now - session.timestamp > SESSION_TIMEOUT) {
+    secureStorage.removeItem(STORAGE_KEY);
+    secureStorage.removeItem(SESSION_KEY);
+    return false;
+  }
+  return true;
+}
+
+// Get initial user state
+function getInitialUser(): User | null {
+  const storedUser = secureStorage.getItem<User | null>(STORAGE_KEY, null);
+  if (storedUser && isSessionValid()) {
+    secureStorage.setItem(SESSION_KEY, { timestamp: Date.now() });
+    return storedUser;
+  }
+  return null;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Check session validity
-  const checkSession = useCallback(() => {
-    const session = secureStorage.getItem<{ timestamp: number }>(SESSION_KEY, { timestamp: 0 });
-    const now = Date.now();
-
-    if (session.timestamp && now - session.timestamp > SESSION_TIMEOUT) {
-      // Session expired
-      secureStorage.removeItem(STORAGE_KEY);
-      secureStorage.removeItem(SESSION_KEY);
-      setUser(null);
-      return false;
-    }
-
-    return true;
-  }, []);
+  const [user, setUser] = useState<User | null>(getInitialUser);
+  const [isLoading] = useState(false);
 
   // Update session timestamp
   const updateSession = useCallback(() => {
     secureStorage.setItem(SESSION_KEY, { timestamp: Date.now() });
   }, []);
-
-  // Load user from storage
-  useEffect(() => {
-    const storedUser = secureStorage.getItem<User | null>(STORAGE_KEY, null);
-    if (storedUser && checkSession()) {
-      setUser(storedUser);
-      updateSession();
-    }
-    setIsLoading(false);
-  }, [checkSession, updateSession]);
 
   // Keep session alive on activity
   useEffect(() => {

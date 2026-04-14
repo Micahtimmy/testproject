@@ -69,15 +69,10 @@ const defaultGoals: Goal[] = [
 ];
 
 export function useGoals() {
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Load goals from storage
-  useEffect(() => {
-    const stored = secureStorage.getItem<Goal[]>(STORAGE_KEY, defaultGoals);
-    setGoals(stored);
-    setIsLoading(false);
-  }, []);
+  const [goals, setGoals] = useState<Goal[]>(() =>
+    secureStorage.getItem<Goal[]>(STORAGE_KEY, defaultGoals)
+  );
+  const [isLoading] = useState(false);
 
   // Save goals to storage
   useEffect(() => {

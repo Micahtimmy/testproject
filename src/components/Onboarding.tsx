@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Wallet,
@@ -12,13 +12,12 @@ import {
   X,
 } from 'lucide-react';
 import { secureStorage } from '../utils/security';
+import { ONBOARDING_KEY } from '../hooks/useOnboarding';
 
 interface OnboardingProps {
   onComplete: () => void;
   userName?: string;
 }
-
-const ONBOARDING_KEY = 'financeflow_onboarding_complete';
 
 const slides = [
   {
@@ -192,29 +191,3 @@ export function Onboarding({ onComplete, userName }: OnboardingProps) {
     </AnimatePresence>
   );
 }
-
-// Hook to check if onboarding should be shown
-export function useOnboarding() {
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
-
-  useEffect(() => {
-    const completed = secureStorage.getItem<boolean>(ONBOARDING_KEY, false);
-    setShowOnboarding(!completed);
-    setIsChecked(true);
-  }, []);
-
-  const completeOnboarding = () => {
-    secureStorage.setItem(ONBOARDING_KEY, true);
-    setShowOnboarding(false);
-  };
-
-  const resetOnboarding = () => {
-    secureStorage.removeItem(ONBOARDING_KEY);
-    setShowOnboarding(true);
-  };
-
-  return { showOnboarding, isChecked, completeOnboarding, resetOnboarding };
-}
-
-export { ONBOARDING_KEY };

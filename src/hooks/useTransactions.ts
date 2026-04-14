@@ -41,29 +41,25 @@ interface ValidationResult {
   errors: string[];
 }
 
-export function useTransactions() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+function getInitialTransactions(): Transaction[] {
+  const stored = secureStorage.getItem<Transaction[]>(STORAGE_KEY, []);
+  if (stored.length > 0) {
+    return stored;
+  }
+  secureStorage.setItem(STORAGE_KEY, DEMO_TRANSACTIONS);
+  return DEMO_TRANSACTIONS;
+}
 
-  // Load transactions from storage
-  useEffect(() => {
-    const stored = secureStorage.getItem<Transaction[]>(STORAGE_KEY, []);
-    if (stored.length > 0) {
-      setTransactions(stored);
-    } else {
-      setTransactions(DEMO_TRANSACTIONS);
-      secureStorage.setItem(STORAGE_KEY, DEMO_TRANSACTIONS);
-    }
-    setIsLoaded(true);
-  }, []);
+export function useTransactions() {
+  const [transactions, setTransactions] = useState<Transaction[]>(getInitialTransactions);
+  const [error, setError] = useState<string | null>(null);
 
   // Persist transactions to storage
   useEffect(() => {
-    if (isLoaded && transactions.length > 0) {
+    if (transactions.length > 0) {
       secureStorage.setItem(STORAGE_KEY, transactions);
     }
-  }, [transactions, isLoaded]);
+  }, [transactions]);
 
   // Validate transaction input
   const validateTransaction = useCallback((input: TransactionInput): ValidationResult => {
@@ -206,7 +202,6 @@ export function useTransactions() {
     balance,
     monthlyIncome,
     monthlyExpenses,
-    isLoaded,
     error,
     clearError,
   };

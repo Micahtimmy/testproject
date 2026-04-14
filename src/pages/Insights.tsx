@@ -1,4 +1,6 @@
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import {
   Sparkles,
   TrendingUp,
@@ -12,10 +14,14 @@ import {
   Zap,
   ExternalLink,
   X,
+  ChevronRight,
+  Info,
 } from 'lucide-react';
 import { useTransactions } from '../hooks/useTransactions';
 import { useBudgets } from '../hooks/useBudgets';
 import { useAIInsights } from '../hooks/useAIInsights';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
@@ -38,16 +44,51 @@ const insightColors = {
   tip: { bg: 'bg-amber-50', border: 'border-amber-100', text: 'text-warning' },
 };
 
+// Map insight actions to actual routes or actions
+const actionRoutes: Record<string, string> = {
+  'Review subscriptions and recurring expenses': '/transactions?filter=recurring',
+  'Set up automatic savings transfer': '/goals',
+  'Review budget allocations': '/budgets',
+  'Explore investment options': '/insights#investments',
+};
+
+// External finance platforms for stocks
+const stockPlatforms: Record<string, string> = {
+  AAPL: 'https://finance.yahoo.com/quote/AAPL',
+  GOOGL: 'https://finance.yahoo.com/quote/GOOGL',
+  MSFT: 'https://finance.yahoo.com/quote/MSFT',
+  AMZN: 'https://finance.yahoo.com/quote/AMZN',
+  NVDA: 'https://finance.yahoo.com/quote/NVDA',
+  TSLA: 'https://finance.yahoo.com/quote/TSLA',
+  VOO: 'https://finance.yahoo.com/quote/VOO',
+  VTI: 'https://finance.yahoo.com/quote/VTI',
+};
+
 export function Insights() {
   const { transactions } = useTransactions();
   const { budgets } = useBudgets();
   const { insights, stocks, isAnalyzing, refreshInsights, dismissInsight } = useAIInsights(transactions, budgets);
+  const [selectedStock, setSelectedStock] = useState<string | null>(null);
 
   const highPriorityInsights = insights.filter((i) => i.priority === 'high');
   const otherInsights = insights.filter((i) => i.priority !== 'high');
 
+  const handleInsightAction = (action: string) => {
+    const route = actionRoutes[action];
+    if (route) {
+      if (route.startsWith('/')) {
+        window.location.href = route;
+      }
+    }
+  };
+
+  const openStockDetails = (symbol: string) => {
+    const url = stockPlatforms[symbol] || `https://finance.yahoo.com/quote/${symbol}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -57,14 +98,15 @@ export function Insights() {
           </h1>
           <p className="text-body-sm mt-1">Personalized financial recommendations powered by AI</p>
         </div>
-        <button
+        <Button
           onClick={refreshInsights}
           disabled={isAnalyzing}
-          className="btn btn-secondary"
+          variant="secondary"
+          className="gap-2"
         >
           <RefreshCw className={`w-5 h-5 ${isAnalyzing ? 'animate-spin' : ''}`} />
           {isAnalyzing ? 'Analyzing...' : 'Refresh Insights'}
-        </button>
+        </Button>
       </div>
 
       {/* AI Analysis Banner */}
@@ -88,17 +130,26 @@ export function Insights() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+            <Link to="/budgets" className="bg-white/10 backdrop-blur-sm rounded-xl p-4 hover:bg-white/20 transition-colors cursor-pointer">
               <p className="text-white/70 text-sm mb-1">Potential Savings</p>
               <p className="text-2xl font-semibold">$847/mo</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <p className="text-white/60 text-xs mt-1 flex items-center gap-1">
+                View budgets <ChevronRight className="w-3 h-3" />
+              </p>
+            </Link>
+            <Link to="/goals" className="bg-white/10 backdrop-blur-sm rounded-xl p-4 hover:bg-white/20 transition-colors cursor-pointer">
               <p className="text-white/70 text-sm mb-1">Investment Opportunity</p>
               <p className="text-2xl font-semibold">$2,400/yr</p>
-            </div>
+              <p className="text-white/60 text-xs mt-1 flex items-center gap-1">
+                Set goals <ChevronRight className="w-3 h-3" />
+              </p>
+            </Link>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
               <p className="text-white/70 text-sm mb-1">Financial Health Score</p>
               <p className="text-2xl font-semibold">78/100</p>
+              <div className="mt-2 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                <div className="h-full bg-white rounded-full" style={{ width: '78%' }} />
+              </div>
             </div>
           </div>
         </div>
@@ -122,41 +173,50 @@ export function Insights() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className={`card border ${colors.border} relative group`}
                 >
-                  <button
-                    onClick={() => dismissInsight(insight.id)}
-                    className="absolute top-4 right-4 p-1.5 opacity-0 group-hover:opacity-100 hover:bg-surface-lighter rounded-lg transition-all"
-                    aria-label="Dismiss insight"
-                  >
-                    <X className="w-4 h-4 text-text-muted" />
-                  </button>
+                  <Card className={`border ${colors.border} relative group h-full`}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => dismissInsight(insight.id)}
+                      className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 h-8 w-8"
+                      aria-label="Dismiss insight"
+                    >
+                      <X className="w-4 h-4 text-text-muted" />
+                    </Button>
 
-                  <div className="flex gap-4">
-                    <div className={`w-10 h-10 rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0`}>
-                      <Icon className={`w-5 h-5 ${colors.text}`} />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-text text-sm mb-1">{insight.title}</h3>
-                      <p className="text-xs text-text-secondary mb-3">{insight.description}</p>
-
-                      {insight.impact && (
-                        <div className="bg-surface-lighter rounded-lg p-3 mb-3">
-                          <p className="text-xs text-text-secondary">
-                            <span className="font-medium text-text">Impact: </span>
-                            {insight.impact}
-                          </p>
+                    <CardContent className="pt-6">
+                      <div className="flex gap-4">
+                        <div className={`w-10 h-10 rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0`}>
+                          <Icon className={`w-5 h-5 ${colors.text}`} />
                         </div>
-                      )}
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-text text-sm mb-1">{insight.title}</h3>
+                          <p className="text-xs text-text-secondary mb-3">{insight.description}</p>
 
-                      {insight.action && (
-                        <button className={`text-sm font-medium ${colors.text} hover:underline flex items-center gap-1`}>
-                          {insight.action}
-                          <ArrowUpRight className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                          {insight.impact && (
+                            <div className="bg-surface-lighter rounded-lg p-3 mb-3">
+                              <p className="text-xs text-text-secondary">
+                                <span className="font-medium text-text">Impact: </span>
+                                {insight.impact}
+                              </p>
+                            </div>
+                          )}
+
+                          {insight.action && (
+                            <Button
+                              variant="link"
+                              className={`p-0 h-auto ${colors.text} text-sm font-medium`}
+                              onClick={() => handleInsightAction(insight.action!)}
+                            >
+                              {insight.action}
+                              <ArrowUpRight className="w-4 h-4 ml-1" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </motion.div>
               );
             })}
@@ -165,7 +225,7 @@ export function Insights() {
       )}
 
       {/* Recommendations Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* AI Recommendations */}
         <div className="space-y-4">
           <h2 className="text-heading-3 flex items-center gap-2">
@@ -184,27 +244,32 @@ export function Insights() {
                   initial={{ opacity: 0, x: -16 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="card card-sm group"
                 >
-                  <div className="flex gap-3">
-                    <div className={`w-8 h-8 rounded-lg ${colors.bg} flex items-center justify-center flex-shrink-0`}>
-                      <Icon className={`w-4 h-4 ${colors.text}`} />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-text text-sm">{insight.title}</h4>
-                      <p className="text-xs text-text-muted mt-1">{insight.description}</p>
-                      {insight.impact && (
-                        <p className="text-xs text-primary mt-2 font-medium">{insight.impact}</p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => dismissInsight(insight.id)}
-                      className="p-1 opacity-0 group-hover:opacity-100 hover:bg-surface-lighter rounded transition-all h-fit"
-                      aria-label="Dismiss insight"
-                    >
-                      <X className="w-3 h-3 text-text-muted" />
-                    </button>
-                  </div>
+                  <Card className="group hover:shadow-md transition-shadow">
+                    <CardContent className="py-4">
+                      <div className="flex gap-3">
+                        <div className={`w-8 h-8 rounded-lg ${colors.bg} flex items-center justify-center flex-shrink-0`}>
+                          <Icon className={`w-4 h-4 ${colors.text}`} />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-text text-sm">{insight.title}</h4>
+                          <p className="text-xs text-text-muted mt-1">{insight.description}</p>
+                          {insight.impact && (
+                            <p className="text-xs text-primary mt-2 font-medium">{insight.impact}</p>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => dismissInsight(insight.id)}
+                          className="opacity-0 group-hover:opacity-100 h-6 w-6"
+                          aria-label="Dismiss insight"
+                        >
+                          <X className="w-3 h-3 text-text-muted" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </motion.div>
               );
             })}
@@ -212,21 +277,33 @@ export function Insights() {
         </div>
 
         {/* Stock Suggestions */}
-        <div className="space-y-4">
-          <h2 className="text-heading-3 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            Investment Suggestions
-          </h2>
+        <div className="space-y-4" id="investments">
+          <div className="flex items-center justify-between">
+            <h2 className="text-heading-3 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              Investment Suggestions
+            </h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-text-muted"
+              onClick={() => window.open('https://finance.yahoo.com', '_blank', 'noopener,noreferrer')}
+            >
+              <Info className="w-4 h-4 mr-1" />
+              Data from Yahoo Finance
+            </Button>
+          </div>
 
-          <div className="card p-0 overflow-hidden">
+          <Card className="p-0 overflow-hidden">
             <div className="divide-y divide-border">
               {stocks.map((stock, index) => (
-                <motion.div
+                <motion.button
                   key={stock.symbol}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="p-4 hover:bg-surface-lighter transition-colors"
+                  onClick={() => openStockDetails(stock.symbol)}
+                  className="w-full p-4 hover:bg-surface-lighter transition-colors text-left cursor-pointer"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
@@ -234,13 +311,16 @@ export function Insights() {
                         {stock.symbol.slice(0, 2)}
                       </div>
                       <div>
-                        <p className="font-semibold text-text text-sm">{stock.symbol}</p>
+                        <p className="font-semibold text-text text-sm flex items-center gap-1">
+                          {stock.symbol}
+                          <ExternalLink className="w-3 h-3 text-text-muted" />
+                        </p>
                         <p className="text-xs text-text-muted">{stock.name}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-text text-sm">{formatCurrency(stock.price)}</p>
-                      <div className={`flex items-center gap-1 text-xs ${stock.change >= 0 ? 'text-primary' : 'text-danger'}`}>
+                      <div className={`flex items-center justify-end gap-1 text-xs ${stock.change >= 0 ? 'text-primary' : 'text-danger'}`}>
                         {stock.change >= 0 ? (
                           <ArrowUpRight className="w-3 h-3" />
                         ) : (
@@ -265,87 +345,150 @@ export function Insights() {
                     </span>
                     <p className="text-xs text-text-muted flex-1 ml-3 truncate">{stock.reason}</p>
                   </div>
-                </motion.div>
+                </motion.button>
               ))}
             </div>
 
             <div className="p-4 border-t border-border">
-              <button className="w-full text-sm text-primary hover:text-primary-dark font-medium flex items-center justify-center gap-2 transition-colors">
-                View All Investment Options
-                <ExternalLink className="w-4 h-4" />
-              </button>
+              <Button
+                variant="ghost"
+                className="w-full text-primary hover:text-primary-dark"
+                onClick={() => window.open('https://finance.yahoo.com/markets/', '_blank', 'noopener,noreferrer')}
+              >
+                View All Investment Options on Yahoo Finance
+                <ExternalLink className="w-4 h-4 ml-2" />
+              </Button>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
 
-      {/* Financial Goals */}
+      {/* Financial Goals - Link to Goals Page */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="card"
       >
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-heading-3 flex items-center gap-2">
-            <Target className="w-5 h-5 text-primary" />
-            Suggested Financial Goals
-          </h2>
-        </div>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-primary" />
+                Suggested Financial Goals
+              </CardTitle>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/goals">
+                  Manage Goals
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Link>
+              </Button>
+            </div>
+            <CardDescription>
+              Track your progress towards financial freedom
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                {
+                  title: 'Emergency Fund',
+                  target: 15000,
+                  current: 8500,
+                  timeframe: '12 months',
+                  color: 'from-primary to-teal-400',
+                  link: '/goals',
+                },
+                {
+                  title: 'Vacation Savings',
+                  target: 5000,
+                  current: 2100,
+                  timeframe: '6 months',
+                  color: 'from-blue-500 to-cyan-400',
+                  link: '/goals',
+                },
+                {
+                  title: 'Investment Portfolio',
+                  target: 50000,
+                  current: 23000,
+                  timeframe: '24 months',
+                  color: 'from-purple-500 to-pink-400',
+                  link: '/goals',
+                },
+              ].map((goal, index) => (
+                <motion.div
+                  key={goal.title}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.35 + index * 0.05 }}
+                >
+                  <Link
+                    to={goal.link}
+                    className="block bg-surface-lighter rounded-xl p-5 hover:shadow-md transition-all hover:-translate-y-0.5"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="font-semibold text-text text-sm">{goal.title}</h3>
+                      <ChevronRight className="w-4 h-4 text-text-muted" />
+                    </div>
+                    <p className="text-xs text-text-muted mb-4">Target: {goal.timeframe}</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            {
-              title: 'Emergency Fund',
-              target: 15000,
-              current: 8500,
-              timeframe: '12 months',
-              color: 'from-primary to-teal-400',
-            },
-            {
-              title: 'Vacation Savings',
-              target: 5000,
-              current: 2100,
-              timeframe: '6 months',
-              color: 'from-blue-500 to-cyan-400',
-            },
-            {
-              title: 'Investment Portfolio',
-              target: 50000,
-              current: 23000,
-              timeframe: '24 months',
-              color: 'from-purple-500 to-pink-400',
-            },
-          ].map((goal, index) => (
-            <motion.div
-              key={goal.title}
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.35 + index * 0.05 }}
-              className="bg-surface-lighter rounded-xl p-5"
-            >
-              <h3 className="font-semibold text-text text-sm mb-1">{goal.title}</h3>
-              <p className="text-xs text-text-muted mb-4">Target: {goal.timeframe}</p>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-text font-medium">{formatCurrency(goal.current)}</span>
+                      <span className="text-text-muted">{formatCurrency(goal.target)}</span>
+                    </div>
 
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-text font-medium">{formatCurrency(goal.current)}</span>
-                <span className="text-text-muted">{formatCurrency(goal.target)}</span>
-              </div>
+                    <div className="progress">
+                      <div
+                        className={`progress-bar bg-gradient-to-r ${goal.color}`}
+                        style={{ width: `${(goal.current / goal.target) * 100}%` }}
+                      />
+                    </div>
 
-              <div className="progress">
-                <div
-                  className={`progress-bar bg-gradient-to-r ${goal.color}`}
-                  style={{ width: `${(goal.current / goal.target) * 100}%` }}
-                />
-              </div>
-
-              <p className="text-xs text-text-muted mt-3">
-                {((goal.current / goal.target) * 100).toFixed(0)}% complete
-              </p>
-            </motion.div>
-          ))}
-        </div>
+                    <p className="text-xs text-text-muted mt-3">
+                      {((goal.current / goal.target) * 100).toFixed(0)}% complete
+                    </p>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </motion.div>
+
+      {/* Stock Detail Modal */}
+      <AnimatePresence>
+        {selectedStock && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedStock(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 16 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Card className="w-full max-w-md">
+                <CardHeader>
+                  <CardTitle>Stock Details</CardTitle>
+                  <CardDescription>View more information on Yahoo Finance</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    className="w-full"
+                    onClick={() => openStockDetails(selectedStock)}
+                  >
+                    Open in Yahoo Finance
+                    <ExternalLink className="w-4 h-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

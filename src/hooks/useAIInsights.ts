@@ -188,13 +188,22 @@ export function useAIInsights(transactions: Transaction[], budgets: Budget[]) {
   }, [transactions, budgets]);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored && transactions.length > 0) {
-      setInsights(JSON.parse(stored));
-    } else if (transactions.length > 0) {
+    if (transactions.length > 0) {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (parsed.length > 0) {
+            setInsights(parsed);
+            return;
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      }
       refreshInsights();
     }
-  }, [transactions.length, refreshInsights]);
+  }, [transactions.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const dismissInsight = (id: string) => {
     setInsights((prev) => prev.filter((i) => i.id !== id));

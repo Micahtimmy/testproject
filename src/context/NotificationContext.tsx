@@ -39,17 +39,20 @@ const INITIAL_NOTIFICATIONS: Notification[] = [
   },
 ];
 
-export function NotificationProvider({ children }: { children: ReactNode }) {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-
-  useEffect(() => {
+function getInitialNotifications(): Notification[] {
+  try {
     const stored = localStorage.getItem('financeflow-notifications');
     if (stored) {
-      setNotifications(JSON.parse(stored));
-    } else {
-      setNotifications(INITIAL_NOTIFICATIONS);
+      return JSON.parse(stored);
     }
-  }, []);
+  } catch {
+    // Ignore parse errors
+  }
+  return INITIAL_NOTIFICATIONS;
+}
+
+export function NotificationProvider({ children }: { children: ReactNode }) {
+  const [notifications, setNotifications] = useState<Notification[]>(getInitialNotifications);
 
   useEffect(() => {
     if (notifications.length > 0) {

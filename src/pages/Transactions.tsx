@@ -24,6 +24,9 @@ import {
 import { useTransactions } from '../hooks/useTransactions';
 import { CATEGORY_CONFIG, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../types';
 import type { TransactionType, Category } from '../types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Briefcase,
@@ -136,77 +139,74 @@ export function Transactions() {
           <h1 className="text-heading-1">Transactions</h1>
           <p className="text-body-sm mt-1">Manage and track all your transactions</p>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="btn btn-primary"
-        >
-          <Plus className="w-5 h-5" />
+        <Button onClick={() => setShowAddModal(true)}>
+          <Plus className="w-5 h-5 mr-2" />
           Add Transaction
-        </button>
+        </Button>
       </div>
 
       {/* Error message */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-danger rounded-xl p-4 text-sm flex items-center justify-between">
           {error}
-          <button onClick={clearError} className="text-danger hover:text-red-700">
+          <Button variant="ghost" size="icon" onClick={clearError} className="text-danger hover:text-red-700 h-8 w-8">
             <X className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
       )}
 
       {/* Filters */}
-      <div className="card">
-        <div className="flex flex-wrap items-center gap-4">
-          {/* Search */}
-          <div className="flex-1 min-w-64 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search transactions..."
-              className="input h-10 text-sm"
-              style={{ paddingLeft: '40px' }}
-            />
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Search */}
+            <div className="flex-1 min-w-64 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+              <Input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search transactions..."
+                className="h-10 text-sm pl-10"
+              />
+            </div>
+
+            {/* Type Filter */}
+            <div className="flex bg-surface-lighter rounded-xl p-1">
+              {(['all', 'income', 'expense'] as const).map((type) => (
+                <Button
+                  key={type}
+                  variant={filterType === type ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setFilterType(type)}
+                  className={filterType === type ? '' : 'text-text-secondary hover:text-text'}
+                >
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </Button>
+              ))}
+            </div>
+
+            {/* Sort */}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setSortBy(sortBy === 'date' ? 'amount' : 'date')}
+            >
+              <ArrowUpDown className="w-4 h-4 mr-2" />
+              Sort by {sortBy}
+            </Button>
+
+            {/* Export */}
+            <Button variant="secondary" size="sm">
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
           </div>
-
-          {/* Type Filter */}
-          <div className="flex bg-surface-lighter rounded-xl p-1">
-            {(['all', 'income', 'expense'] as const).map((type) => (
-              <button
-                key={type}
-                onClick={() => setFilterType(type)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  filterType === type
-                    ? 'bg-primary text-white'
-                    : 'text-text-secondary hover:text-text'
-                }`}
-              >
-                {type.charAt(0).toUpperCase() + type.slice(1)}
-              </button>
-            ))}
-          </div>
-
-          {/* Sort */}
-          <button
-            onClick={() => setSortBy(sortBy === 'date' ? 'amount' : 'date')}
-            className="btn btn-secondary btn-sm"
-          >
-            <ArrowUpDown className="w-4 h-4" />
-            Sort by {sortBy}
-          </button>
-
-          {/* Export */}
-          <button className="btn btn-secondary btn-sm">
-            <Download className="w-4 h-4" />
-            Export
-          </button>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Transactions List */}
-      <div className="card p-0 overflow-hidden">
+      <Card className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -270,13 +270,15 @@ export function Transactions() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => deleteTransaction(transaction.id)}
-                        className="p-2 text-text-muted hover:text-danger hover:bg-red-50 rounded-lg transition-colors"
+                        className="text-text-muted hover:text-danger hover:bg-red-50 h-9 w-9"
                         aria-label="Delete transaction"
                       >
                         <Trash2 className="w-4 h-4" />
-                      </button>
+                      </Button>
                     </td>
                   </motion.tr>
                 );
@@ -286,11 +288,15 @@ export function Transactions() {
         </div>
 
         {filteredTransactions.length === 0 && (
-          <div className="empty-state">
+          <div className="empty-state p-12 text-center">
             <p className="text-text-secondary">No transactions found</p>
+            <Button className="mt-4" onClick={() => setShowAddModal(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Your First Transaction
+            </Button>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Add Transaction Modal */}
       <AnimatePresence>
@@ -306,145 +312,142 @@ export function Transactions() {
               initial={{ opacity: 0, scale: 0.95, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 16 }}
-              className="card w-full max-w-md shadow-xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-heading-2">Add Transaction</h2>
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="p-2 hover:bg-surface-lighter rounded-lg transition-colors"
-                  aria-label="Close modal"
-                >
-                  <X className="w-5 h-5 text-text-muted" />
-                </button>
-              </div>
+              <Card className="w-full max-w-md shadow-xl">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-heading-2">Add Transaction</h2>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowAddModal(false)}
+                      aria-label="Close modal"
+                    >
+                      <X className="w-5 h-5 text-text-muted" />
+                    </Button>
+                  </div>
 
-              {formError && (
-                <div className="bg-red-50 border border-red-200 text-danger rounded-xl p-3 mb-4 text-sm">
-                  {formError}
-                </div>
-              )}
+                  {formError && (
+                    <div className="bg-red-50 border border-red-200 text-danger rounded-xl p-3 mb-4 text-sm">
+                      {formError}
+                    </div>
+                  )}
 
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Type Toggle */}
-                <div className="flex bg-surface-lighter rounded-xl p-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFormType('expense');
-                      setFormCategory('food');
-                    }}
-                    className={`flex-1 py-2.5 rounded-lg font-medium text-sm transition-all ${
-                      formType === 'expense'
-                        ? 'bg-danger text-white'
-                        : 'text-text-secondary hover:text-text'
-                    }`}
-                  >
-                    Expense
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFormType('income');
-                      setFormCategory('salary');
-                    }}
-                    className={`flex-1 py-2.5 rounded-lg font-medium text-sm transition-all ${
-                      formType === 'income'
-                        ? 'bg-primary text-white'
-                        : 'text-text-secondary hover:text-text'
-                    }`}
-                  >
-                    Income
-                  </button>
-                </div>
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                    {/* Type Toggle */}
+                    <div className="flex bg-surface-lighter rounded-xl p-1">
+                      <Button
+                        type="button"
+                        variant={formType === 'expense' ? 'destructive' : 'ghost'}
+                        onClick={() => {
+                          setFormType('expense');
+                          setFormCategory('food');
+                        }}
+                        className="flex-1"
+                      >
+                        Expense
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={formType === 'income' ? 'default' : 'ghost'}
+                        onClick={() => {
+                          setFormType('income');
+                          setFormCategory('salary');
+                        }}
+                        className="flex-1"
+                      >
+                        Income
+                      </Button>
+                    </div>
 
-                {/* Amount & Date */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-text-secondary mb-2">Amount</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">$</span>
-                      <input
-                        type="number"
-                        value={formAmount}
-                        onChange={(e) => setFormAmount(e.target.value)}
-                        placeholder="0.00"
-                        step="0.01"
-                        min="0"
+                    {/* Amount & Date */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-text-secondary mb-2">Amount</label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">$</span>
+                          <Input
+                            type="number"
+                            value={formAmount}
+                            onChange={(e) => setFormAmount(e.target.value)}
+                            placeholder="0.00"
+                            step="0.01"
+                            min="0"
+                            required
+                            className="pl-8"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-text-secondary mb-2">Date</label>
+                        <Input
+                          type="date"
+                          value={formDate}
+                          onChange={(e) => setFormDate(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Category */}
+                    <div>
+                      <label className="block text-sm font-medium text-text-secondary mb-2">Category</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {categories.map((cat) => (
+                          <Button
+                            key={cat}
+                            type="button"
+                            variant={formCategory === cat ? 'outline' : 'ghost'}
+                            onClick={() => setFormCategory(cat)}
+                            className={`p-3 h-auto text-xs font-medium ${
+                              formCategory === cat
+                                ? 'border-primary bg-primary-light'
+                                : 'border-border bg-surface-lighter hover:border-text-muted'
+                            }`}
+                            style={
+                              formCategory === cat
+                                ? { color: CATEGORY_CONFIG[cat].color }
+                                : { color: 'inherit' }
+                            }
+                          >
+                            {CATEGORY_CONFIG[cat].label}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                      <label className="block text-sm font-medium text-text-secondary mb-2">Description</label>
+                      <Input
+                        type="text"
+                        value={formDescription}
+                        onChange={(e) => setFormDescription(e.target.value)}
+                        placeholder="What was this for?"
                         required
-                        className="input"
-                        style={{ paddingLeft: '32px' }}
+                        maxLength={200}
                       />
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-text-secondary mb-2">Date</label>
-                    <input
-                      type="date"
-                      value={formDate}
-                      onChange={(e) => setFormDate(e.target.value)}
-                      required
-                      className="input"
-                    />
-                  </div>
-                </div>
 
-                {/* Category */}
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-2">Category</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {categories.map((cat) => (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => setFormCategory(cat)}
-                        className={`p-3 rounded-xl text-xs font-medium transition-all border ${
-                          formCategory === cat
-                            ? 'border-primary bg-primary-light'
-                            : 'border-border bg-surface-lighter hover:border-text-muted'
-                        }`}
-                        style={
-                          formCategory === cat
-                            ? { color: CATEGORY_CONFIG[cat].color }
-                            : { color: 'inherit' }
-                        }
-                      >
-                        {CATEGORY_CONFIG[cat].label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                    {/* Recurring */}
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formRecurring}
+                        onChange={(e) => setFormRecurring(e.target.checked)}
+                        className="rounded border-border"
+                      />
+                      <span className="text-sm text-text">This is a recurring transaction</span>
+                    </label>
 
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-2">Description</label>
-                  <input
-                    type="text"
-                    value={formDescription}
-                    onChange={(e) => setFormDescription(e.target.value)}
-                    placeholder="What was this for?"
-                    required
-                    maxLength={200}
-                    className="input"
-                  />
-                </div>
-
-                {/* Recurring */}
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formRecurring}
-                    onChange={(e) => setFormRecurring(e.target.checked)}
-                  />
-                  <span className="text-sm text-text">This is a recurring transaction</span>
-                </label>
-
-                {/* Submit */}
-                <button type="submit" className="btn btn-primary w-full h-12">
-                  Add {formType === 'income' ? 'Income' : 'Expense'}
-                </button>
-              </form>
+                    {/* Submit */}
+                    <Button type="submit" className="w-full h-12">
+                      Add {formType === 'income' ? 'Income' : 'Expense'}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
             </motion.div>
           </motion.div>
         )}

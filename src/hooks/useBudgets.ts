@@ -22,29 +22,25 @@ interface BudgetInput {
   period: BudgetPeriod;
 }
 
-export function useBudgets() {
-  const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const { addNotification } = useNotifications();
+function getInitialBudgets(): Budget[] {
+  const stored = secureStorage.getItem<Budget[]>(STORAGE_KEY, []);
+  if (stored.length > 0) {
+    return stored;
+  }
+  secureStorage.setItem(STORAGE_KEY, DEFAULT_BUDGETS);
+  return DEFAULT_BUDGETS;
+}
 
-  // Load budgets from storage
-  useEffect(() => {
-    const stored = secureStorage.getItem<Budget[]>(STORAGE_KEY, []);
-    if (stored.length > 0) {
-      setBudgets(stored);
-    } else {
-      setBudgets(DEFAULT_BUDGETS);
-      secureStorage.setItem(STORAGE_KEY, DEFAULT_BUDGETS);
-    }
-    setIsLoaded(true);
-  }, []);
+export function useBudgets() {
+  const [budgets, setBudgets] = useState<Budget[]>(getInitialBudgets);
+  const { addNotification } = useNotifications();
 
   // Persist budgets to storage
   useEffect(() => {
-    if (isLoaded && budgets.length > 0) {
+    if (budgets.length > 0) {
       secureStorage.setItem(STORAGE_KEY, budgets);
     }
-  }, [budgets, isLoaded]);
+  }, [budgets]);
 
   // Add new budget with validation
   const addBudget = useCallback((input: BudgetInput): { success: boolean; error?: string } => {
@@ -177,7 +173,6 @@ export function useBudgets() {
     totalBudgeted,
     totalSpent,
     totalRemaining,
-    isLoaded,
     resetBudgets,
   };
 }
