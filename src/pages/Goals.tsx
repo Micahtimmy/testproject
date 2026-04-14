@@ -116,7 +116,7 @@ export function Goals() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -347,17 +347,18 @@ export function Goals() {
               exit={{ opacity: 0, scale: 0.95, y: 16 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <Card className="w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
+              <Card className="w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="create-goal-title">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-heading-2">Create New Goal</h2>
+                    <h2 id="create-goal-title" className="text-heading-2">Create New Goal</h2>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setShowAddModal(false)}
                       aria-label="Close modal"
+                      autoFocus
                     >
-                      <X className="w-5 h-5 text-text-muted" />
+                      <X className="w-5 h-5 text-text-muted" aria-hidden="true" />
                     </Button>
                   </div>
 
@@ -383,14 +384,15 @@ export function Goals() {
 
                     {/* Description */}
                     <div>
-                      <label className="block text-sm font-medium text-text-secondary mb-2">Description (optional)</label>
+                      <label htmlFor="goal-description" className="block text-sm font-medium text-text-secondary mb-2">Description (optional)</label>
                       <textarea
+                        id="goal-description"
                         value={formDescription}
                         onChange={(e) => setFormDescription(e.target.value)}
                         placeholder="What's this goal about?"
                         rows={2}
                         maxLength={300}
-                        className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex w-full rounded-xl border border-[hsl(var(--border))] bg-white px-4 py-3 text-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
                       />
                     </div>
 
@@ -583,19 +585,20 @@ export function Goals() {
                         }}
                         className="flex-1"
                       >
-                        <CheckCircle className="w-5 h-5 mr-2" />
+                        <CheckCircle className="w-5 h-5 mr-2" aria-hidden="true" />
                         Mark Complete
                       </Button>
                     )}
                     <Button
-                      variant="secondary"
+                      variant="outline"
                       onClick={() => {
                         deleteGoal(selectedGoal.id);
                         setSelectedGoal(null);
                       }}
-                      className="text-danger hover:bg-red-50"
+                      className="border-danger text-danger hover:bg-red-50"
+                      aria-label={`Delete goal: ${selectedGoal.title}`}
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Trash2 className="w-5 h-5" aria-hidden="true" />
                     </Button>
                   </div>
                 </CardContent>

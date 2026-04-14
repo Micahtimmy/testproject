@@ -297,18 +297,22 @@ export function Budgets() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 16 }}
               onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="create-budget-title"
             >
               <Card className="w-full max-w-md shadow-xl">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-heading-2">Create Budget</h2>
+                    <h2 id="create-budget-title" className="text-heading-2">Create Budget</h2>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setShowAddModal(false)}
                       aria-label="Close modal"
+                      autoFocus
                     >
-                      <X className="w-5 h-5 text-text-muted" />
+                      <X className="w-5 h-5 text-text-muted" aria-hidden="true" />
                     </Button>
                   </div>
 

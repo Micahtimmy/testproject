@@ -88,7 +88,7 @@ export function Insights() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -125,27 +125,27 @@ export function Insights() {
             </div>
             <div>
               <h2 className="text-xl font-semibold">AI Financial Analysis</h2>
-              <p className="text-white/70 text-sm">Based on your spending patterns and financial goals</p>
+              <p className="text-white/90 text-sm">Based on your spending patterns and financial goals</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
             <Link to="/budgets" className="bg-white/10 backdrop-blur-sm rounded-xl p-4 hover:bg-white/20 transition-colors cursor-pointer">
-              <p className="text-white/70 text-sm mb-1">Potential Savings</p>
+              <p className="text-white/90 text-sm mb-1">Potential Savings</p>
               <p className="text-2xl font-semibold">$847/mo</p>
-              <p className="text-white/60 text-xs mt-1 flex items-center gap-1">
-                View budgets <ChevronRight className="w-3 h-3" />
+              <p className="text-white/80 text-xs mt-1 flex items-center gap-1">
+                View budgets <ChevronRight className="w-3 h-3" aria-hidden="true" />
               </p>
             </Link>
             <Link to="/goals" className="bg-white/10 backdrop-blur-sm rounded-xl p-4 hover:bg-white/20 transition-colors cursor-pointer">
-              <p className="text-white/70 text-sm mb-1">Investment Opportunity</p>
+              <p className="text-white/90 text-sm mb-1">Investment Opportunity</p>
               <p className="text-2xl font-semibold">$2,400/yr</p>
-              <p className="text-white/60 text-xs mt-1 flex items-center gap-1">
-                Set goals <ChevronRight className="w-3 h-3" />
+              <p className="text-white/80 text-xs mt-1 flex items-center gap-1">
+                Set goals <ChevronRight className="w-3 h-3" aria-hidden="true" />
               </p>
             </Link>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <p className="text-white/70 text-sm mb-1">Financial Health Score</p>
+              <p className="text-white/90 text-sm mb-1">Financial Health Score</p>
               <p className="text-2xl font-semibold">78/100</p>
               <div className="mt-2 h-1.5 bg-white/20 rounded-full overflow-hidden">
                 <div className="h-full bg-white rounded-full" style={{ width: '78%' }} />
@@ -225,7 +225,7 @@ export function Insights() {
       )}
 
       {/* Recommendations Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* AI Recommendations */}
         <div className="space-y-4">
           <h2 className="text-heading-3 flex items-center gap-2">

@@ -230,8 +230,11 @@ export function Settings() {
 
             {/* Currency */}
             <div>
-              <h3 className="text-sm font-medium text-text-secondary mb-4">Currency</h3>
-              <select className="flex h-10 w-full md:w-64 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+              <label htmlFor="currency-select" className="block text-sm font-medium text-text-secondary mb-4">Currency</label>
+              <select
+                id="currency-select"
+                className="flex h-10 w-full md:w-64 rounded-xl border border-[hsl(var(--border))] bg-white px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2"
+              >
                 <option value="USD">USD ($)</option>
                 <option value="EUR">EUR (&euro;)</option>
                 <option value="GBP">GBP (&pound;)</option>
@@ -255,36 +258,42 @@ export function Settings() {
                 { key: 'push', icon: Smartphone, title: 'Push Notifications', description: 'Get instant alerts on your device' },
                 { key: 'budgetAlerts', icon: AlertCircle, title: 'Budget Alerts', description: 'Get notified when approaching budget limits' },
                 { key: 'weeklyReport', icon: FileText, title: 'Weekly Report', description: 'Receive a weekly summary of your finances' },
-              ].map((item) => (
-                <div
-                  key={item.key}
-                  className="flex items-center justify-between p-4 bg-surface-lighter rounded-xl"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-primary-light rounded-xl flex items-center justify-center">
-                      <item.icon className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-text text-sm">{item.title}</p>
-                      <p className="text-xs text-text-muted">{item.description}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setNotifications({ ...notifications, [item.key]: !notifications[item.key as keyof typeof notifications] })}
-                    className={`w-12 h-6 rounded-full transition-colors ${
-                      notifications[item.key as keyof typeof notifications] ? 'bg-primary' : 'bg-border'
-                    }`}
-                    role="switch"
-                    aria-checked={notifications[item.key as keyof typeof notifications]}
+              ].map((item) => {
+                const toggleId = `toggle-${item.key}`;
+                const labelId = `label-${item.key}`;
+                return (
+                  <div
+                    key={item.key}
+                    className="flex items-center justify-between p-4 bg-surface-lighter rounded-xl"
                   >
-                    <div
-                      className={`w-5 h-5 rounded-full bg-white shadow transform transition-transform ${
-                        notifications[item.key as keyof typeof notifications] ? 'translate-x-6' : 'translate-x-0.5'
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-primary-light rounded-xl flex items-center justify-center">
+                        <item.icon className="w-5 h-5 text-primary" aria-hidden="true" />
+                      </div>
+                      <div>
+                        <p id={labelId} className="font-medium text-text text-sm">{item.title}</p>
+                        <p className="text-xs text-text-muted">{item.description}</p>
+                      </div>
+                    </div>
+                    <button
+                      id={toggleId}
+                      onClick={() => setNotifications({ ...notifications, [item.key]: !notifications[item.key as keyof typeof notifications] })}
+                      className={`w-12 h-6 rounded-full transition-colors ${
+                        notifications[item.key as keyof typeof notifications] ? 'bg-primary' : 'bg-gray-300'
                       }`}
-                    />
-                  </button>
-                </div>
-              ))}
+                      role="switch"
+                      aria-checked={notifications[item.key as keyof typeof notifications]}
+                      aria-labelledby={labelId}
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-full bg-white shadow transform transition-transform ${
+                          notifications[item.key as keyof typeof notifications] ? 'translate-x-6' : 'translate-x-0.5'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
 
             <Button onClick={handleSaveNotifications}>
@@ -439,7 +448,7 @@ export function Settings() {
       {/* Sidebar */}
       <div className="w-64 flex-shrink-0">
         <Card className="p-2 sticky top-24">
-          <nav>
+          <nav aria-label="Settings navigation">
             {settingsSections.map((section) => (
               <Button
                 key={section.id}

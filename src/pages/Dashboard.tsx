@@ -98,9 +98,9 @@ export function Dashboard() {
   const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <header className="flex items-center justify-between">
         <div>
           <h1 className="text-heading-1">Dashboard</h1>
           <p className="text-body-sm mt-1">Welcome back! Here's your financial overview.</p>
@@ -123,10 +123,12 @@ export function Dashboard() {
             </span>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <section aria-labelledby="stats-heading">
+        <h2 id="stats-heading" className="sr-only">Financial Statistics</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Balance */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -138,13 +140,13 @@ export function Dashboard() {
           <div className="relative">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                <Wallet className="w-5 h-5" />
+                <Wallet className="w-5 h-5" aria-hidden="true" />
               </div>
-              <span className="text-white/80 font-medium text-sm">Total Balance</span>
+              <span className="text-white/90 font-medium text-sm">Total Balance</span>
             </div>
             <p className="text-3xl font-semibold">{formatCurrency(balance)}</p>
-            <div className="flex items-center gap-1 mt-2 text-sm text-white/70">
-              <ArrowUpRight className="w-4 h-4" />
+            <div className="flex items-center gap-1 mt-2 text-sm text-white/90">
+              <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
               <span>+12.5% from last month</span>
             </div>
           </div>
@@ -211,10 +213,13 @@ export function Dashboard() {
             />
           </div>
         </motion.div>
-      </div>
+        </div>
+      </section>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <section aria-labelledby="charts-heading">
+        <h2 id="charts-heading" className="sr-only">Financial Charts</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Income vs Expenses Chart */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -339,10 +344,13 @@ export function Dashboard() {
             ))}
           </div>
         </motion.div>
-      </div>
+        </div>
+      </section>
 
       {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <section aria-labelledby="activity-heading">
+        <h2 id="activity-heading" className="sr-only">Recent Activity and Insights</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Transactions */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -500,7 +508,8 @@ export function Dashboard() {
             </CardContent>
           </Card>
         </motion.div>
-      </div>
+        </div>
+      </section>
 
       {/* Goals Section */}
       {activeGoals.length > 0 && (

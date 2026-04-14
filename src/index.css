@@ -80,10 +80,10 @@
   --color-bg-subtle: #F9FAFB;
   --color-border: #E2E8F0;
 
-  /* Text */
+  /* Text - WCAG AA compliant contrast ratios */
   --color-text-primary: #0F172A;
   --color-text-secondary: #475569;
-  --color-text-muted: #94A3B8;
+  --color-text-muted: #64748B; /* Improved from #94A3B8 for 4.6:1 contrast */
 }
 
 .dark {
@@ -91,8 +91,8 @@
   --color-bg-subtle: #1E293B;
   --color-border: #334155;
   --color-text-primary: #F8FAFC;
-  --color-text-secondary: #94A3B8;
-  --color-text-muted: #64748B;
+  --color-text-secondary: #CBD5E1; /* Improved contrast for dark mode */
+  --color-text-muted: #94A3B8;
 }
 
 /* Base */
@@ -152,12 +152,12 @@ h3, .h3 {
   color: var(--color-text-secondary);
 }
 
-/* Card - Clean with generous padding */
+/* Card - Clean with 8pt grid padding */
 .card {
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: 16px;
-  padding: 28px;
+  padding: 24px;
 }
 
 .card-sm {
@@ -165,7 +165,7 @@ h3, .h3 {
 }
 
 .card-lg {
-  padding: 36px;
+  padding: 32px;
 }
 
 .card-hover, .hover-lift {
@@ -246,8 +246,8 @@ h3, .h3 {
 }
 
 .btn-lg {
-  height: 52px;
-  padding: 0 28px;
+  height: 48px;
+  padding: 0 24px;
   font-size: 1rem;
 }
 

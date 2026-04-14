@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Wallet,
@@ -61,6 +61,24 @@ export function Onboarding({ onComplete, userName }: OnboardingProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isExiting, setIsExiting] = useState(false);
 
+  // Handle escape key to close
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      handleComplete();
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  const handleComplete = () => {
+    setIsExiting(true);
+    secureStorage.setItem(ONBOARDING_KEY, true);
+    setTimeout(onComplete, 300);
+  };
+
   const handleNext = () => {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide((prev) => prev + 1);
@@ -71,12 +89,6 @@ export function Onboarding({ onComplete, userName }: OnboardingProps) {
     if (currentSlide > 0) {
       setCurrentSlide((prev) => prev - 1);
     }
-  };
-
-  const handleComplete = () => {
-    setIsExiting(true);
-    secureStorage.setItem(ONBOARDING_KEY, true);
-    setTimeout(onComplete, 300);
   };
 
   const handleSkip = () => {
@@ -101,15 +113,19 @@ export function Onboarding({ onComplete, userName }: OnboardingProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="card w-full max-w-lg p-0 overflow-hidden shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="onboarding-title"
           >
             {/* Header with gradient */}
             <div className={`relative bg-gradient-to-br ${slide.color} p-8 pb-20`}>
               <button
                 onClick={handleSkip}
-                className="absolute top-4 right-4 p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                className="absolute top-4 right-4 p-2 text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                 aria-label="Skip onboarding"
+                autoFocus
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
 
               <motion.div
@@ -121,9 +137,9 @@ export function Onboarding({ onComplete, userName }: OnboardingProps) {
                 className="text-center"
               >
                 <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <Icon className="w-10 h-10 text-white" />
+                  <Icon className="w-10 h-10 text-white" aria-hidden="true" />
                 </div>
-                <h2 className="text-2xl font-semibold text-white mb-2">
+                <h2 id="onboarding-title" className="text-2xl font-semibold text-white mb-2">
                   {currentSlide === 0 && userName ? `Welcome, ${userName}!` : slide.title}
                 </h2>
               </motion.div>
@@ -175,12 +191,12 @@ export function Onboarding({ onComplete, userName }: OnboardingProps) {
                 {isLastSlide ? (
                   <button onClick={handleComplete} className="btn btn-primary flex-1">
                     Get Started
-                    <Check className="w-5 h-5" />
+                    <Check className="w-5 h-5" aria-hidden="true" />
                   </button>
                 ) : (
                   <button onClick={handleNext} className="btn btn-primary flex-1">
                     Continue
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight className="w-5 h-5" aria-hidden="true" />
                   </button>
                 )}
               </div>

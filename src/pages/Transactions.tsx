@@ -208,14 +208,14 @@ export function Transactions() {
       {/* Transactions List */}
       <Card className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full" role="table" aria-label="Transactions list">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left px-6 py-4 text-sm font-medium text-text-secondary">Transaction</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-text-secondary">Category</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-text-secondary">Date</th>
-                <th className="text-right px-6 py-4 text-sm font-medium text-text-secondary">Amount</th>
-                <th className="text-right px-6 py-4 text-sm font-medium text-text-secondary">Actions</th>
+                <th scope="col" className="text-left px-6 py-4 text-sm font-medium text-text-secondary">Transaction</th>
+                <th scope="col" className="text-left px-6 py-4 text-sm font-medium text-text-secondary">Category</th>
+                <th scope="col" className="text-left px-6 py-4 text-sm font-medium text-text-secondary">Date</th>
+                <th scope="col" className="text-right px-6 py-4 text-sm font-medium text-text-secondary">Amount</th>
+                <th scope="col" className="text-right px-6 py-4 text-sm font-medium text-text-secondary"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -288,10 +288,16 @@ export function Transactions() {
         </div>
 
         {filteredTransactions.length === 0 && (
-          <div className="empty-state p-12 text-center">
-            <p className="text-text-secondary">No transactions found</p>
-            <Button className="mt-4" onClick={() => setShowAddModal(true)}>
-              <Plus className="w-4 h-4 mr-2" />
+          <div className="empty-state py-16 px-8 text-center" role="status" aria-live="polite">
+            <div className="w-16 h-16 bg-primary-light rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Plus className="w-8 h-8 text-primary" aria-hidden="true" />
+            </div>
+            <p className="text-text font-medium mb-2">No transactions found</p>
+            <p className="text-text-secondary text-sm mb-6">
+              {searchQuery ? 'Try adjusting your search or filters' : 'Start tracking your finances by adding your first transaction'}
+            </p>
+            <Button onClick={() => setShowAddModal(true)}>
+              <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
               Add Your First Transaction
             </Button>
           </div>
@@ -313,18 +319,22 @@ export function Transactions() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 16 }}
               onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="add-transaction-title"
             >
               <Card className="w-full max-w-md shadow-xl">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-heading-2">Add Transaction</h2>
+                    <h2 id="add-transaction-title" className="text-heading-2">Add Transaction</h2>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setShowAddModal(false)}
                       aria-label="Close modal"
+                      autoFocus
                     >
-                      <X className="w-5 h-5 text-text-muted" />
+                      <X className="w-5 h-5 text-text-muted" aria-hidden="true" />
                     </Button>
                   </div>
 
